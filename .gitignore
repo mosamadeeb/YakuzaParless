@@ -332,4 +332,7 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# Premake
 premake5.exe
+build/
