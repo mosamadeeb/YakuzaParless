@@ -58,6 +58,8 @@ namespace Parless
     /// <returns></returns>
     char* RenameFilePaths(char* filepath)
     {
+        char* datapath;
+
         string path(filepath);
 
         size_t indexOfData = firstIndexOf(path, "/data/");
@@ -120,7 +122,13 @@ namespace Parless
 
                     if (logParless)
                     {
-                        parlessOverrides << filepath << '\n';
+                        if (indexOfData == -1) indexOfData = 0;
+
+                        datapath = new char[strlen(filepath) - indexOfData];
+                        strcpy(datapath, filepath + indexOfData);
+                        strcat(datapath, "\n");
+
+                        parlessOverrides << datapath;
                         parlessOverrides.flush();
                     }
                 }
@@ -145,7 +153,13 @@ namespace Parless
 
                         if (logMods)
                         {
-                            modOverrides << filepath << '\n';
+                            if (indexOfData == -1) indexOfData = 0;
+
+                            datapath = new char[strlen(filepath) - indexOfData];
+                            strcpy(datapath, filepath + indexOfData);
+                            strcat(datapath, "\n");
+
+                            modOverrides << datapath;
                             modOverrides.flush();
                         }
                     }
@@ -155,7 +169,18 @@ namespace Parless
 
         if (logAll)
         {
-            allFilepaths << filepath << '\n';
+            if (indexOfData == -1)
+            {
+                // Some files might be logged with the new path
+                indexOfData = firstIndexOf(path, "/mods/");
+                if (indexOfData == -1) indexOfData = 0;
+            }
+
+            datapath = new char[strlen(filepath) - indexOfData];
+            strcpy(datapath, filepath + indexOfData);
+            strcat(datapath, "\n");
+
+            allFilepaths << datapath;
             allFilepaths.flush();
         }
 
