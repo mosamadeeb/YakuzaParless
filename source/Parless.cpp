@@ -15,9 +15,7 @@
 #include <Maps.h>
 
 #include <algorithm>
-#include <string>
 #include <filesystem>
-#include <unordered_set>
 #include <iostream>
 #include <fstream>
 
@@ -74,7 +72,7 @@ namespace Parless
                 path = removeParlessPath(path, indexOfData);
             }
 
-            if (gameMap.size())
+            if (!gameMap.empty())
             {
                 splits = splitPath(path, indexOfData, loadedParsMaxSplits);
                 path = translatePath(gameMap, path, splits);
@@ -96,9 +94,9 @@ namespace Parless
 
                 if (endsWith(path, ".par") && baseParIndex == -1)
                 {
-                    loadedPars.insert(path.substr(indexOfData, path.length() - indexOfData - 4));
+                    loadedPars.insert(path.substr(splits[1], path.length() - splits[1] - 4));
 
-                    size_t parSplitCount = count(path.begin() + indexOfData, path.end(), '/');
+                    size_t parSplitCount = count(path.begin() + splits[1], path.end(), '/');
                     if (parSplitCount > loadedParsMaxSplits)
                     {
                         loadedParsMaxSplits = parSplitCount;
@@ -107,7 +105,7 @@ namespace Parless
                     // If /<parname>.parless/overwrite.txt exists, prevent the original par from loading.
                     if (filesystem::exists(path + "less/overwrite.txt"))
                     {
-                        path.replace(indexOfData, path.length() - indexOfData, "/data/parless.par");
+                        path.replace(splits[1], path.length() - splits[1], "/parless.par");
                     }
                 }
 

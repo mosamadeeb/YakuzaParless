@@ -1,4 +1,3 @@
-#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -21,18 +20,19 @@ string translatePath(stringmap pathMap, string path, vector<int> parts)
 	string sub;
 	stringmap::const_iterator match;
 
-	const int MAX_SPLITS = 3;
+	const int START = 1; // Start index for checking paths
+	const int MAX_SPLITS = (START + 1) + 2; // Max splits is 2
 
 	// Look for matches in the map
-	for (int i = 0; i < MAX_SPLITS && i < parts.size(); i++)
+	for (int i = START + 1; i < MAX_SPLITS && i < parts.size(); i++)
 	{
-		sub = path.substr(parts[0], parts[i] - parts[0]);
+		sub = path.substr(parts[START], parts[i] - parts[START]);
 		match = pathMap.find(sub);
 
 		if (match != pathMap.end())
 		{
 			// translate path
-			return path.replace(parts[0], parts[i] - parts[0], match->second);
+			return path.replace(parts[START], parts[i] - parts[START], match->second);
 		}
 	}
 
@@ -43,10 +43,12 @@ int getSplitIndexInSet(stringset loadedPars, string path, vector<int> parts)
 {
 	string sub;
 
+	const int START = 1; // Start index for checking paths
+
 	// Look for matches in the set
-	for (int i = 1; i < parts.size(); i++)
+	for (int i = START + 1; i < parts.size(); i++)
 	{
-		sub = path.substr(parts[0], parts[i] - parts[0]);
+		sub = path.substr(parts[START], parts[i] - parts[START]);
 
 		if (loadedPars.count(sub))
 		{
@@ -160,52 +162,52 @@ stringmap getGameMap(Game game, Locale locale)
 		case Game::Yakuza0:
 		case Game::YakuzaKiwami:
 			return stringmap({
-				{"/data/font" , "/data/fontpar/font"},
-				{"/data/2d/sprite_" + loc2 , "/data/2dpar/sprite_" + loc2},
-				{"/data/boot" , "/data/bootpar/boot"},
-				{"/data/stay" , "/data/staypar/stay"},
-				{"/data/sound" , "/data/soundpar/sound"},
-				{"/data/battle" , "/data/battlepar/battle"},
-				{"/data/reactor_w64" , "/data/reactorpar/reactor_w64"},
-				{"/data/wdr_" + loc2 + "/common" , "/data/wdr_par_" + loc2 + "/common"},
-				{"/data/wdr_" + loc2 , "/data/wdr_par_" + loc2 + "/wdr"},
-				{"/data/light_anim" , "/data/light_anim/light_anim"},
+				{"/font" , "/fontpar/font"},
+				{"/2d/sprite_" + loc2 , "/2dpar/sprite_" + loc2},
+				{"/boot" , "/bootpar/boot"},
+				{"/stay" , "/staypar/stay"},
+				{"/sound" , "/soundpar/sound"},
+				{"/battle" , "/battlepar/battle"},
+				{"/reactor_w64" , "/reactorpar/reactor_w64"},
+				{"/wdr_" + loc2 + "/common" , "/wdr_par_" + loc2 + "/common"},
+				{"/wdr_" + loc2 , "/wdr_par_" + loc2 + "/wdr"},
+				{"/light_anim" , "/light_anim/light_anim"},
 
 				// Yakuza 0 specific
-				{"/data/2d/ui_" + loc1 , "/data/2dpar/ui_" + loc1},
-				{"/data/pause_" + loc1 , "/data/pausepar_" + loc1 + "/pause"},
+				{"/2d/ui_" + loc1 , "/2dpar/ui_" + loc1},
+				{"/pause_" + loc1 , "/pausepar_" + loc1 + "/pause"},
 
 				// Yakuza Kiwami specific
-				{"/data/2d/ui_" + loc2 , "/data/2dpar/ui_" + loc2},
-				{"/data/pause_" + loc2 , "/data/pausepar_" + loc2 + "/pause"},
+				{"/2d/ui_" + loc2 , "/2dpar/ui_" + loc2},
+				{"/pause_" + loc2 , "/pausepar_" + loc2 + "/pause"},
 			});
 		case Game::Yakuza3:
 		case Game::Yakuza4:
 			return stringmap({
-				{"/data/font", "/data/fontpar/font_hd_en"}, // This is always en
-				{"/data/2d/cse" , "/data/2dpar/cse_" + loc3},
-				{"/data/2d/picture" , "/data/2dpar/picture_" + loc3},
-				{"/data/boot" , "/data/bootpar/boot_" + loc3},
-				{"/data/pause" , "/data/pausepar/pause_" + loc3},
-				{"/data/reactive_obj/object" , "/data/reactive_obj/object_hires"},
-				{"/data/chase" , "/data/chasepar/chase"},
-				{"/data/wdr_" + loc3 + "/common" , "/data/wdr_par_" + loc3 + "/common"},
-				{"/data/wdr_" + loc3 , "/data/wdr_par_" + loc3 + "/wdr"},
+				{"/font", "/fontpar/font_hd_en"}, // This is always en
+				{"/2d/cse" , "/2dpar/cse_" + loc3},
+				{"/2d/picture" , "/2dpar/picture_" + loc3},
+				{"/boot" , "/bootpar/boot_" + loc3},
+				{"/pause" , "/pausepar/pause_" + loc3},
+				{"/reactive_obj/object" , "/reactive_obj/object_hires"},
+				{"/chase" , "/chasepar/chase"},
+				{"/wdr_" + loc3 + "/common" , "/wdr_par_" + loc3 + "/common"},
+				{"/wdr_" + loc3 , "/wdr_par_" + loc3 + "/wdr"},
 			});
 		case Game::Yakuza5:
 			return stringmap({
-				{"/data/font", "/data/fontpar/font_hd_en"}, // This is always en
-				{"/data/font_qloc", "/data/fontpar/font_q_icons"},
-				{"/data/2d/sprite" , "/data/2dpar/sprite_" + loc3},
-				{"/data/2d/ui" , "/data/2dpar/ui_" + loc3},
-				{"/data/boot" , "/data/bootpar/boot_" + loc3},
-				{"/data/stay" , "/data/staypar/stay_" + loc3},
-				{"/data/pause" , "/data/pausepar/pause_" + loc3},
-				{"/data/reactor" , "/data/reactorpar/reactor"},
-				{"/data/sound" , "/data/soundpar/sound"},
-				{"/data/battle" , "/data/battlepar/battle"},
-				{"/data/wdr_" + loc3 + "/common" , "/data/wdr_par_" + loc3 + "/common"},
-				{"/data/wdr_" + loc3 , "/data/wdr_par_" + loc3 + "/wdr"},
+				{"/font", "/fontpar/font_hd_en"}, // This is always en
+				{"/font_qloc", "/fontpar/font_q_icons"},
+				{"/2d/sprite" , "/2dpar/sprite_" + loc3},
+				{"/2d/ui" , "/2dpar/ui_" + loc3},
+				{"/boot" , "/bootpar/boot_" + loc3},
+				{"/stay" , "/staypar/stay_" + loc3},
+				{"/pause" , "/pausepar/pause_" + loc3},
+				{"/reactor" , "/reactorpar/reactor"},
+				{"/sound" , "/soundpar/sound"},
+				{"/battle" , "/battlepar/battle"},
+				{"/wdr_" + loc3 + "/common" , "/wdr_par_" + loc3 + "/common"},
+				{"/wdr_" + loc3 , "/wdr_par_" + loc3 + "/wdr"},
 			});
 		case Game::Yakuza6:
 		case Game::YakuzaKiwami2:
