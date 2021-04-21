@@ -175,11 +175,11 @@ stringmap getGameMap(Game game, Locale locale)
 
 				// Yakuza 0 specific
 				{"/2d/ui_" + loc1 , "/2dpar/ui_" + loc1},
-				{"/pause_" + loc1 , "/pausepar_" + loc1 + "/pause"},
+				{"/pause_" + loc1 , "/pausepar/pause_" + loc2},
 
 				// Yakuza Kiwami specific
 				{"/2d/ui_" + loc2 , "/2dpar/ui_" + loc2},
-				{"/pause_" + loc2 , "/pausepar_" + loc2 + "/pause"},
+				{"/pause_" + loc2 , "/pausepar/pause_" + loc2},
 			});
 		case Game::Yakuza3:
 		case Game::Yakuza4:
