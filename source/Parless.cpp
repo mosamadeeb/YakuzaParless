@@ -348,15 +348,15 @@ void OnInitializeHook()
         loadMods = false;
     }
 
-    // Open log streams
-    if (logMods && loadMods)
-        modOverrides.open("modOverrides.txt", ios::out);
+    // Open log streams if logging is enabled, remove them otherwise
+    if (logMods && loadMods) modOverrides.open("modOverrides.txt", ios::out);
+    else remove("modOverrides.txt");
 
-    if (logParless && loadParless)
-        parlessOverrides.open("parlessOverrides.txt", ios::out);
+    if (logParless && loadParless) parlessOverrides.open("parlessOverrides.txt", ios::out);
+    else remove("parlessOverrides.txt");
 
-    if (logAll)
-        allFilepaths.open("allFilespaths.txt", ios::out);
+    if (logAll) allFilepaths.open("allFilespaths.txt", ios::out);
+    else remove("allFilespaths.txt");
 
     if (loadParless || loadMods)
     {
