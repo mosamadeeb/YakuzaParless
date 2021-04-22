@@ -122,8 +122,6 @@ namespace Parless
 
                     if (logParless)
                     {
-                        if (indexOfData == -1) indexOfData = 0;
-
                         datapath = new char[strlen(filepath) - indexOfData];
                         strcpy(datapath, filepath + indexOfData);
                         strcat(datapath, "\n");
@@ -153,8 +151,6 @@ namespace Parless
 
                         if (logMods)
                         {
-                            if (indexOfData == -1) indexOfData = 0;
-
                             datapath = new char[strlen(filepath) - indexOfData];
                             strcpy(datapath, filepath + indexOfData);
                             strcat(datapath, "\n");
