@@ -324,6 +324,14 @@ void OnInitializeHook()
     logParless = GetPrivateProfileIntW(L"Logs", L"LogParless", 0, wcModulePath);
     logAll = GetPrivateProfileIntW(L"Logs", L"LogAll", 0, wcModulePath);
 
+    if (GetPrivateProfileIntW(L"Debug", L"ConsoleEnabled", 0, wcModulePath))
+    {
+        // Open debugging console
+        AllocConsole();
+        FILE* fDummy;
+        freopen_s(&fDummy, "CONOUT$", "w", stdout);
+    }
+
     Trampoline* trampoline = Trampoline::MakeTrampoline(GetModuleHandle(nullptr));
 
     // Get the name of the current game
