@@ -111,38 +111,14 @@ enum class Locale
 
 Game getGame(string name)
 {
-	if (name == "Yakuza3")
-	{
-		return Game::Yakuza3;
-	}
-	if (name == "Yakuza4")
-	{
-		return Game::Yakuza4;
-	}
-	if (name == "Yakuza5")
-	{
-		return Game::Yakuza5;
-	}
-	if (name == "Yakuza0")
-	{
-		return Game::Yakuza0;
-	}
-	if (name == "YakuzaKiwami")
-	{
-		return Game::YakuzaKiwami;
-	}
-	if (name == "Yakuza6")
-	{
-		return Game::Yakuza6;
-	}
-	if (name == "YakuzaKiwami2")
-	{
-		return Game::YakuzaKiwami2;
-	}
-	if (name == "YakuzaLikeADragon")
-	{
-		return Game::YakuzaLikeADragon;
-	}
+	if (name == "Yakuza3") return Game::Yakuza3;
+	if (name == "Yakuza4") return Game::Yakuza4;
+	if (name == "Yakuza5") return Game::Yakuza5;
+	if (name == "Yakuza0") return Game::Yakuza0;
+	if (name == "YakuzaKiwami") return Game::YakuzaKiwami;
+	if (name == "Yakuza6") return Game::Yakuza6;
+	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
+	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
 
 	return Game::Unsupported;
 }

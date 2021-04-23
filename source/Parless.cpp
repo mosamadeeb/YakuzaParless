@@ -382,11 +382,43 @@ void OnInitializeHook()
                 break;
             case Game::Yakuza6:
             {
+                // Hook inside the method that calculates a string's length to add 0x20 bytes to the length
+                // This is needed to prevent undefined behavior when the modified path is longer than the memory allocated to it
+                auto stringLenAddr = get_pattern("8B CD 3B D9 77 47", -0x1C);
+
+                Trampoline* trampolineStringLen = Trampoline::MakeTrampoline(stringLenAddr);
+
+                const uint8_t spacePayload[] = {
+                    0x48, 0x03, 0xD8, // add rbx, rax
+                    0x2B, 0xDE, // sub ebx, esi
+                    0x48, 0x83, 0xC3, 0x20, // add rbx, 0x20
+                    0x48, 0x8B, 0x07, // mov rax, qword ptr ds:[rdi]
+                    0xE9, 0x0, 0x0, 0x0, 0x0 // jmp stringLenAddr+8
+                };
+
+                std::byte* space = trampolineStringLen->RawSpace(sizeof(spacePayload));
+                memcpy(space, spacePayload, sizeof(spacePayload));
+
+                VP::WriteOffsetValue(space + 3 + 2 + 4 + 3 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 8);
+
+                const uint8_t funcPayload[] = {
+                    0x48, 0x8B, 0xDB, // mov rbx, rbx
+                    0xE9, 0x0, 0x0, 0x0, 0x0 // jmp space
+                };
+
+                memcpy(stringLenAddr, funcPayload, sizeof(funcPayload));
+
+                VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 3, space, PATCH_JUMP);
+
                 // Hook the AddFileEntry method to get each filepath that is loaded in the game
+
+                // This function we're hooking is called from multiple places and the result we want to
+                // change will not be available after the function returns.
+                // So instead, hook the first couple of instructions of the function
                 renameFilePathsFunc = get_pattern("48 8D 8D 00 04 00 00 48 89 85 00 04 00 00", -0x62);
                 Trampoline* trampolineDE = Trampoline::MakeTrampoline(renameFilePathsFunc);
 
-                const uint8_t payload[] = {
+                const uint8_t spacePayload2[] = {
                     0xE9, 0x0, 0x0, 0x0, 0x0, // jmp Y6AddFileEntry
                     0x48, 0x89, 0x4C, 0x24, 0x08, // mov qword ptr ss : [rsp + 8] , rcx
                     0x55, // push rbp
@@ -395,55 +427,26 @@ void OnInitializeHook()
                     0xE9, 0x0, 0x0, 0x0, 0x0 // jmp renameFilePathsFunc+9
                 };
 
-                std::byte* space = trampolineDE->RawSpace(sizeof(payload));
-                memcpy(space, payload, sizeof(payload));
+                std::byte* space2 = trampolineDE->RawSpace(sizeof(spacePayload2));
+                memcpy(space2, spacePayload2, sizeof(spacePayload2));
 
-                intptr_t srcAddr = (intptr_t)(space + 5);
+                intptr_t srcAddr = (intptr_t)(space2 + 5);
                 orgY6AddFileEntry = {};
                 memcpy(std::addressof(orgY6AddFileEntry), &srcAddr, sizeof(srcAddr));
 
-                VP::InjectHook(space, trampoline->Jump(Y6AddFileEntry));
-                VP::WriteOffsetValue(space + 5 + 5 + 1 + 1 + 2 + 1, reinterpret_cast<intptr_t>(renameFilePathsFunc) + 9);
-                    
+                VP::InjectHook(space2, trampoline->Jump(Y6AddFileEntry));
+                VP::WriteOffsetValue(space2 + 5 + 5 + 1 + 1 + 2 + 1, reinterpret_cast<intptr_t>(renameFilePathsFunc) + 9);
+
                 // First byte of the function is not writable for some reason, so instead we make the instruction do nothing
-                const uint8_t payload2[] = {
+                const uint8_t funcPayload2[] = {
                     0x48, 0x89, 0xC9, // mov rcx, rcx
-                    0xE9, 0x0, 0x0, 0x0, 0x0, // jmp space
+                    0xE9, 0x0, 0x0, 0x0, 0x0, // jmp space2
                     0x90 // nop
                 };
 
-                memcpy(renameFilePathsFunc, payload2, sizeof(payload2));
+                memcpy(renameFilePathsFunc, funcPayload2, sizeof(funcPayload2));
 
-                VP::InjectHook(reinterpret_cast<intptr_t>(renameFilePathsFunc) + 3, space, PATCH_JUMP);
-
-                // Hook inside the method that calculates a string's length to add 0x20 bytes to the length
-                // This is needed to prevent undefined behavior when the modified path is longer than the memory allocated to it
-                auto stringLenAddr = get_pattern("8B CD 3B D9 77 47", -0x1C);
-
-                Trampoline* trampolineStringLen = Trampoline::MakeTrampoline(stringLenAddr);
-
-                const uint8_t payload3[] = {
-                    0x48, 0x03, 0xD8, // add rbx, rax
-                    0x2B, 0xDE, // sub ebx, esi
-                    0x48, 0x83, 0xC3, 0x20, // add rbx, 0x20
-                    0x48, 0x8B, 0x07, // mov rax, qword ptr ds:[rdi]
-                    0xE9, 0x0, 0x0, 0x0, 0x0 // jmp stringLenAddr+8
-                };
-
-                std::byte* space2 = trampolineStringLen->RawSpace(sizeof(payload3));
-                memcpy(space2, payload3, sizeof(payload3));
-
-                VP::WriteOffsetValue(space2 + 3 + 2 + 4 + 3 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 8);
-
-                const uint8_t payload4[] = {
-                    0x48, 0x8B, 0xDB, // mov rbx, rbx
-                    0xE9, 0x0, 0x0, 0x0, 0x0 // jmp space2
-                };
-
-                memcpy(stringLenAddr, payload4, sizeof(payload4));
-
-                VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 3, space2, PATCH_JUMP);
-
+                VP::InjectHook(reinterpret_cast<intptr_t>(renameFilePathsFunc) + 3, space2, PATCH_JUMP);
                 break;
             }
             case Game::YakuzaKiwami2:
