@@ -69,6 +69,18 @@ namespace Parless
 
         size_t indexOfData = firstIndexOf(path, "/data/");
 
+        if (indexOfData == -1 && loadMods)
+        {
+            // File might be in mods instead, which means we're receiving it modified
+            indexOfData = firstIndexOf(path, "/mods/");
+
+            if (indexOfData != -1)
+            {
+                // Replace the mod path with data
+                path = removeModPath(path, indexOfData);
+            }
+        }
+
         if (indexOfData != -1)
         {
             vector<int> splits;
@@ -144,7 +156,7 @@ namespace Parless
                 // Get the path starting from /data/
                 string dataPath = path.substr(indexOfData + 5);
 
-                stringmap::const_iterator match = fileModMap.find(dataPath);
+                stringmap::const_iterator match = fileModMap.find(boost::to_lower_copy<string>(dataPath));
 
                 if (match != fileModMap.end())
                 {
@@ -169,12 +181,7 @@ namespace Parless
 
         if (logAll)
         {
-            if (indexOfData == -1)
-            {
-                // Some files might be logged with the new path
-                indexOfData = firstIndexOf(path, "/mods/");
-                if (indexOfData == -1) indexOfData = 0;
-            }
+            if (indexOfData == -1) indexOfData = 0;
 
             allFilepaths << filepath + indexOfData << "\n";
             allFilepaths.flush();

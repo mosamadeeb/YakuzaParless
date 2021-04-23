@@ -144,6 +144,18 @@ string removeParlessPath(string path, int indexOfData)
 	return path;
 }
 
+string removeModPath(string path, int indexOfData)
+{
+	size_t pos = firstIndexOf(path, "/", indexOfData + 7);
+
+	if (pos != -1)
+	{
+		path = path.replace(indexOfData, pos - indexOfData, "/data");
+	}
+
+	return path;
+}
+
 stringmap getGameMap(Game game, Locale locale)
 {
 	vector<const char*> loc1Vec{ "e", "j", "z", "k" };
