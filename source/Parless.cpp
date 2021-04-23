@@ -5,7 +5,7 @@
 #define _WIN32_WINNT 0x0601
 
 #include <Shlwapi.h>
-#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/algorithm/string.hpp>
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -22,7 +22,6 @@
 static HMODULE hDLLModule;
 
 using namespace std;
-using namespace boost::multiprecision;
 
 namespace Parless
 {
@@ -224,63 +223,55 @@ void ReadModLoadOrder()
     if (strcmp(magic, MLO_MAGIC))
         return;
 
-    char version[2];
-    mlo.read(version, 2);
+    uint16_t version;
+    mlo.read((char*)&version, sizeof(version));
 
-    if ((int)(*version) == 1)
+    if (version == 1)
     {
-        char current[4];
+        uint32_t modNameStart;
+        uint32_t modCount;
 
-        int modNameStart;
-        int modCount;
+        uint32_t fileNameStart;
+        uint32_t fileCount;
 
-        int fileNameStart;
-        int fileCount;
+        mlo.read((char*)&modNameStart, sizeof(modNameStart));
+        mlo.read((char*)&modCount, sizeof(modNameStart));
+        mlo.read((char*)&fileNameStart, sizeof(modNameStart));
+        mlo.read((char*)&fileCount, sizeof(modNameStart));
 
-        mlo.read(current, sizeof(current));
-        modNameStart = (int)*current;
-
-        mlo.read(current, sizeof(current));
-        modCount = (int)*current;
-
-        mlo.read(current, sizeof(current));
-        fileNameStart = (int)*current;
-
-        mlo.read(current, sizeof(current));
-        fileCount = (int)*current;
-
+        uint16_t length;
         char* name;
-        char sizeBuf[2];
-        int size;
 
         mlo.seekg(modNameStart);
+
+        cout << modNameStart << endl;
+        cout << modCount << endl;
+        cout << fileNameStart << endl;
+        cout << fileCount << endl;
 
         vector<string> mods;
         for (int i = 0; i < modCount; i++)
         {
-            mlo.read(sizeBuf, sizeof(sizeBuf));
-            size = (int)*sizeBuf;
+            mlo.read((char*)&length, sizeof(length));
 
-            name = new char[size];
-            mlo.read(name, size);
+            name = new char[length];
+            mlo.read(name, length);
 
             mods.push_back((string)name);
         }
 
         mlo.seekg(fileNameStart);
 
-        char index[2];
+        uint16_t index;
         for (int i = 0; i < fileCount; i++)
         {
-            mlo.read(index, sizeof(index));
+            mlo.read((char*)&index, sizeof(index));
+            mlo.read((char*)&length, sizeof(length));
 
-            mlo.read(sizeBuf, sizeof(sizeBuf));
-            size = (int)*sizeBuf;
+            name = new char[length];
+            mlo.read(name, length);
 
-            name = new char[size];
-            mlo.read(name, size);
-
-            fileModMap[(string)name] = mods[(int)*index];
+            fileModMap[boost::to_lower_copy<string>(string(name))] = mods[index];
         }
     }
 }
