@@ -8,6 +8,45 @@ using namespace std;
 typedef unordered_set<string> stringset;
 typedef std::unordered_map<std::string, std::string> stringmap;
 
+enum class Game
+{
+	Unsupported = -1,
+
+	// Old Engine
+	Yakuza3,
+	Yakuza4,
+	Yakuza5,
+	Yakuza0,
+	YakuzaKiwami,
+
+	// Dragon Engine
+	Yakuza6,
+	YakuzaKiwami2,
+	YakuzaLikeADragon
+};
+
+Game getGame(string name)
+{
+	if (name == "Yakuza3") return Game::Yakuza3;
+	if (name == "Yakuza4") return Game::Yakuza4;
+	if (name == "Yakuza5") return Game::Yakuza5;
+	if (name == "Yakuza0") return Game::Yakuza0;
+	if (name == "YakuzaKiwami") return Game::YakuzaKiwami;
+	if (name == "Yakuza6") return Game::Yakuza6;
+	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
+	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
+
+	return Game::Unsupported;
+}
+
+enum class Locale
+{
+	English,
+	Japanese,
+	Chinese,
+	Korean
+};
+
 /// <summary>
 /// Translates a path using a map
 /// </summary>
@@ -34,6 +73,23 @@ string translatePath(stringmap pathMap, string path, vector<int> parts)
 			// translate path
 			return path.replace(parts[START], parts[i] - parts[START], match->second);
 		}
+	}
+
+	return path;
+}
+
+string translatePathDE(string path, int indexOfData, Game game, Locale locale)
+{
+	if (firstIndexOf(path, "/data/entity", indexOfData) != -1 && endsWith(path, ".txt"))
+	{
+		string loc = "/ja/";
+		if (locale == Locale::English)
+		{
+			if (game == Game::YakuzaKiwami2) loc = "/en/";
+			else if (game == Game::Yakuza6) loc = "/e/";
+		}
+
+		path = rReplace(path, loc, "/");
 	}
 
 	return path;
@@ -86,41 +142,6 @@ string removeParlessPath(string path, int indexOfData)
 	}
 
 	return path;
-}
-
-enum class Game
-{
-	Unsupported = -1,
-	Yakuza0,
-	YakuzaKiwami,
-	YakuzaKiwami2,
-	Yakuza3,
-	Yakuza4,
-	Yakuza5,
-	Yakuza6,
-	YakuzaLikeADragon
-};
-
-enum class Locale
-{
-	English,
-	Japanese,
-	Chinese,
-	Korean
-};
-
-Game getGame(string name)
-{
-	if (name == "Yakuza3") return Game::Yakuza3;
-	if (name == "Yakuza4") return Game::Yakuza4;
-	if (name == "Yakuza5") return Game::Yakuza5;
-	if (name == "Yakuza0") return Game::Yakuza0;
-	if (name == "YakuzaKiwami") return Game::YakuzaKiwami;
-	if (name == "Yakuza6") return Game::Yakuza6;
-	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
-	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
-
-	return Game::Unsupported;
 }
 
 stringmap getGameMap(Game game, Locale locale)
@@ -190,7 +211,7 @@ stringmap getGameMap(Game game, Locale locale)
 		case Game::YakuzaLikeADragon:
 		case Game::Unsupported:
 		default:
-			// Dragon Engine games don't need any translation
+			// Dragon Engine games don't need any major path translation
 			return stringmap();
 	}
 }

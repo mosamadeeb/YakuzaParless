@@ -31,6 +31,9 @@ namespace Parless
     __int64 (*orgY0AddFileEntry)(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13);
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
 
+    Game currentGame;
+    Locale currentLocale;
+
     stringmap gameMap;
     stringmap fileModMap;
 
@@ -78,6 +81,11 @@ namespace Parless
             {
                 splits = splitPath(path, indexOfData, loadedParsMaxSplits);
                 path = translatePath(gameMap, path, splits);
+            }
+            else if (currentGame >= Game::Yakuza6)
+            {
+                // Dragon Engine specific translation
+                path = translatePathDE(path, indexOfData, currentGame, currentLocale);
             }
 
             string override = "";
@@ -330,11 +338,11 @@ void OnInitializeHook()
 
     wstring wstr(exePath);
 
-    Game game = getGame(basenameBackslashNoExt(string(wstr.begin(), wstr.end())));
-    Locale locale = localeValue < 4 && localeValue >= 0 ? Locale(localeValue) : Locale::English;
+    currentGame = getGame(basenameBackslashNoExt(string(wstr.begin(), wstr.end())));
+    currentLocale = localeValue < 4 && localeValue >= 0 ? Locale(localeValue) : Locale::English;
 
     // Initialize the virtual->real map
-    gameMap = getGameMap(game, locale);
+    gameMap = getGameMap(currentGame, currentLocale);
 
     // Check if /mods/ exists
     if (!filesystem::is_directory("mods"))
@@ -356,7 +364,7 @@ void OnInitializeHook()
     {
         void* renameFilePathsFunc;
 
-        switch (game)
+        switch (currentGame)
         {
             case Game::Yakuza0:
             case Game::YakuzaKiwami:
