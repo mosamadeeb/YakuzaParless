@@ -118,15 +118,12 @@ namespace Parless
                     overridden = true;
 
                     path = override;
-                    copyStrToArray(path, filepath);
+                    path.copy(filepath, path.length());
+                    filepath[path.length()] = '\0';
 
                     if (logParless)
                     {
-                        datapath = new char[strlen(filepath) - indexOfData];
-                        strcpy(datapath, filepath + indexOfData);
-                        strcat(datapath, "\n");
-
-                        parlessOverrides << datapath;
+                        parlessOverrides << filepath + indexOfData << "\n";
                         parlessOverrides.flush();
                     }
                 }
@@ -147,15 +144,12 @@ namespace Parless
 
                     if (filesystem::exists(path))
                     {
-                        copyStrToArray(path, filepath);
+                        path.copy(filepath, path.length());
+                        filepath[path.length()] = '\0';
 
                         if (logMods)
                         {
-                            datapath = new char[strlen(filepath) - indexOfData];
-                            strcpy(datapath, filepath + indexOfData);
-                            strcat(datapath, "\n");
-
-                            modOverrides << datapath;
+                            modOverrides << filepath + indexOfData << "\n";
                             modOverrides.flush();
                         }
                     }
@@ -172,11 +166,7 @@ namespace Parless
                 if (indexOfData == -1) indexOfData = 0;
             }
 
-            datapath = new char[strlen(filepath) - indexOfData];
-            strcpy(datapath, filepath + indexOfData);
-            strcat(datapath, "\n");
-
-            allFilepaths << datapath;
+            allFilepaths << filepath + indexOfData << "\n";
             allFilepaths.flush();
         }
 

@@ -25,20 +25,6 @@ static bool endsWith(string str1, string str2)
 	return str1.substr(str1_size - str2_size, str1_size).compare(str2) == 0;
 }
 
-static void copyStrToArray(string str, char* arr)
-{
-	// clear current array
-	int cur = 0;
-	while (arr[cur] != 0)
-		arr[cur++] = 0;
-
-	// copy string to the array pointer
-	str.copy(arr, str.length(), 0);
-
-	// Add a null at the end
-	arr[str.length()] = '\0';
-}
-
 static int firstIndexOf(string str, string sub)
 {
 	size_t pos = str.find(sub);
