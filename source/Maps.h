@@ -95,26 +95,6 @@ string translatePathDE(string path, int indexOfData, Game game, Locale locale)
 	return path;
 }
 
-int getSplitIndexInSet(stringset loadedPars, string path, vector<int> parts)
-{
-	string sub;
-
-	const int START = 1; // Start index for checking paths
-
-	// Look for matches in the set
-	for (int i = START + 1; i < parts.size(); i++)
-	{
-		sub = path.substr(parts[START], parts[i] - parts[START]);
-
-		if (loadedPars.count(sub))
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 /// <summary>
 /// Appends ".parless" to the path before the end index.
 /// </summary>

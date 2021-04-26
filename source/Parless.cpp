@@ -37,9 +37,9 @@ namespace Parless
     stringmap gameMap;
     stringmap fileModMap;
 
-    stringset loadedPars;
+    unordered_map<string, int> parlessPathMap;
 
-    int loadedParsMaxSplits = 3;
+    int gameMapMaxSplits = 2;
 
     uint8_t STR_LEN_ADD = 0x40;
 
@@ -93,7 +93,7 @@ namespace Parless
 
             if (!gameMap.empty())
             {
-                splits = splitPath(path, indexOfData, loadedParsMaxSplits);
+                splits = splitPath(path, indexOfData, gameMapMaxSplits);
                 path = translatePath(gameMap, path, splits);
             }
             else if (currentGame >= Game::Yakuza6)
@@ -107,33 +107,15 @@ namespace Parless
 
             if (loadParless)
             {
-                splits = splitPath(path, indexOfData, loadedParsMaxSplits);
+                int parlessIndex = -1;
+                unordered_map<string, int>::const_iterator parlessPathMatch = parlessPathMap.find(pathWithoutFilename(path).substr(indexOfData + 5));
 
-                // might want to change this later to "check" files as it's combining splits in order to allow .parless for files that are already loose
-                int baseParIndex = getSplitIndexInSet(loadedPars, path, splits);
-                if (baseParIndex != -1)
+                if (parlessPathMatch != parlessPathMap.end())
                 {
-                    baseParIndex = splits[baseParIndex];
+                    parlessIndex = parlessPathMatch->second + indexOfData + 5;
                 }
 
-                if (endsWith(path, ".par") && baseParIndex == -1)
-                {
-                    loadedPars.insert(path.substr(splits[1], path.length() - splits[1] - 4));
-
-                    size_t parSplitCount = count(path.begin() + splits[1], path.end(), '/');
-                    if (parSplitCount > loadedParsMaxSplits)
-                    {
-                        loadedParsMaxSplits = parSplitCount;
-                    }
-
-                    // If /<parname>.parless/overwrite.txt exists, prevent the original par from loading.
-                    if (filesystem::exists(path + "less/overwrite.txt"))
-                    {
-                        path.replace(splits[1], path.length() - splits[1], "/parless.par");
-                    }
-                }
-
-                override = getParlessPath(path, baseParIndex);
+                override = getParlessPath(path, parlessIndex);
 
                 if (filesystem::exists(override))
                 {
@@ -147,6 +129,14 @@ namespace Parless
                     {
                         parlessOverrides << filepath + indexOfData << "\n";
                         parlessOverrides.flush();
+                    }
+                }
+                else if (endsWith(path, ".par"))
+                {
+                    // If /<parname>.parless/overwrite.txt exists, prevent the original par from loading.
+                    if (filesystem::exists(path + "less/overwrite.txt"))
+                    {
+                        path.replace(splits[1], path.length() - splits[1], "/parless.par");
                     }
                 }
             }
@@ -221,7 +211,7 @@ void ReadModLoadOrder()
 {
     using namespace Parless;
 
-    const char* MLO_MAGIC = "DABABY";
+    const char* MLO_MAGIC = "_OLM";
     const char* MLO_FILE = "YakuzaParless.mlo";
 
     if (!filesystem::exists(MLO_FILE))
@@ -232,17 +222,23 @@ void ReadModLoadOrder()
     if (!mlo)
         return;
 
-    char* magic = new char[7];
-    mlo.read(magic, 6);
-    magic[6] = '\0';
+    char* magic = new char[5];
+    mlo.read(magic, 4);
+    magic[4] = '\0';
 
     if (strcmp(magic, MLO_MAGIC))
         return;
 
-    uint16_t version;
+    // Skip endianness
+    mlo.seekg(4, SEEK_CUR);
+
+    uint32_t version;
     mlo.read((char*)&version, sizeof(version));
 
-    if (version == 1)
+    // Skip filesize
+    mlo.seekg(4, SEEK_CUR);
+
+    if (version == 0x10002)
     {
         uint32_t modNameStart;
         uint32_t modCount;
@@ -250,20 +246,25 @@ void ReadModLoadOrder()
         uint32_t fileNameStart;
         uint32_t fileCount;
 
+        uint32_t parlessPathStart;
+        uint32_t parlessPathCount;
+
         mlo.read((char*)&modNameStart, sizeof(modNameStart));
-        mlo.read((char*)&modCount, sizeof(modNameStart));
-        mlo.read((char*)&fileNameStart, sizeof(modNameStart));
-        mlo.read((char*)&fileCount, sizeof(modNameStart));
+        mlo.read((char*)&modCount, sizeof(modCount));
+
+        mlo.read((char*)&fileNameStart, sizeof(fileNameStart));
+        mlo.read((char*)&fileCount, sizeof(fileCount));
+
+        mlo.read((char*)&parlessPathStart, sizeof(parlessPathStart));
+        mlo.read((char*)&parlessPathCount, sizeof(parlessPathCount));
+
+        // Skip padding
+        mlo.seekg(8, SEEK_CUR);
 
         uint16_t length;
         char* name;
 
         mlo.seekg(modNameStart);
-
-        cout << modNameStart << endl;
-        cout << modCount << endl;
-        cout << fileNameStart << endl;
-        cout << fileCount << endl;
 
         vector<string> mods;
         for (int i = 0; i < modCount; i++)
@@ -287,7 +288,20 @@ void ReadModLoadOrder()
             name = new char[length];
             mlo.read(name, length);
 
-            fileModMap[boost::to_lower_copy<string>(string(name))] = mods[index];
+            fileModMap[string(name)] = mods[index];
+        }
+
+        mlo.seekg(parlessPathStart);
+
+        for (int i = 0; i < parlessPathCount; i++)
+        {
+            mlo.read((char*)&index, sizeof(index));
+            mlo.read((char*)&length, sizeof(length));
+
+            name = new char[length];
+            mlo.read(name, length);
+
+            parlessPathMap[string(name)] = index;
         }
     }
 }
@@ -351,25 +365,34 @@ void OnInitializeHook()
     // Initialize the virtual->real map
     gameMap = getGameMap(currentGame, currentLocale);
 
+    // Read MLO file
+    ReadModLoadOrder();
+
+    // This is filled after reading the MLO
+    if (!parlessPathMap.size())
+    {
+        loadParless = false;
+    }
+
     // Check if /mods/ exists
-    if (!filesystem::is_directory("mods"))
+    if (!fileModMap.size() || !filesystem::is_directory("mods"))
     {
         loadMods = false;
     }
 
-    // Open log streams if logging is enabled, remove them otherwise
-    if (logMods && loadMods) modOverrides.open("modOverrides.txt", ios::out);
-    else remove("modOverrides.txt");
-
-    if (logParless && loadParless) parlessOverrides.open("parlessOverrides.txt", ios::out);
-    else remove("parlessOverrides.txt");
-
-    if (logAll) allFilepaths.open("allFilespaths.txt", ios::out);
-    else remove("allFilespaths.txt");
-
     if (loadParless || loadMods)
     {
         void* renameFilePathsFunc;
+
+        // Open log streams if logging is enabled, remove them otherwise
+        if (logMods && loadMods) modOverrides.open("modOverrides.txt", ios::out);
+        else remove("modOverrides.txt");
+
+        if (logParless && loadParless) parlessOverrides.open("parlessOverrides.txt", ios::out);
+        else remove("parlessOverrides.txt");
+
+        if (logAll) allFilepaths.open("allFilespaths.txt", ios::out);
+        else remove("allFilespaths.txt");
 
         switch (currentGame)
         {
@@ -523,8 +546,6 @@ void OnInitializeHook()
                 break;
         }
     }
-
-    ReadModLoadOrder();
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

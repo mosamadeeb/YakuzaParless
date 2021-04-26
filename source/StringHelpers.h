@@ -112,6 +112,19 @@ static string replaceEnd(string str, string org, string rep)
 	return str;
 }
 
+static string pathWithoutFilename(string str)
+{
+	string path = str;
+
+	// find last "/"
+	size_t index = path.rfind('/');
+
+	if (index == std::string::npos)
+		index = -1;
+	
+	return path.erase(index, path.length() - index);
+}
+
 static string basename(string str, char slash)
 {
 	// find last "/"
