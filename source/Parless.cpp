@@ -41,7 +41,7 @@ namespace Parless
 
     int loadedParsMaxSplits = 3;
 
-    uint8_t STR_LEN_ADD = 0x20;
+    uint8_t STR_LEN_ADD = 0x40;
 
     // Initialized from the INI
     bool loadMods;
