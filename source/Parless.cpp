@@ -47,6 +47,8 @@ namespace Parless
     bool loadMods;
     bool loadParless;
 
+    bool hasRepackedPars;
+
     // Logging streams
     ofstream modOverrides;
     ofstream parlessOverrides;
@@ -105,7 +107,30 @@ namespace Parless
             string override = "";
             bool overridden = false;
 
-            if (loadParless)
+            if (hasRepackedPars && endsWith(path, ".par"))
+            {
+                override = path;
+
+                // Redirect the path from /data/ to /mods/Parless/
+                override.erase(indexOfData, 5);
+                override.insert(indexOfData, "/mods/Parless");
+
+                if (filesystem::exists(override))
+                {
+                    overridden = true;
+
+                    override.copy(filepath, override.length());
+                    filepath[override.length()] = '\0';
+
+                    if (logMods)
+                    {
+                        modOverrides << filepath + indexOfData << "\n";
+                        modOverrides.flush();
+                    }
+                }
+            }
+
+            if (loadParless && !overridden)
             {
                 int parlessIndex = -1;
                 unordered_map<string, int>::const_iterator parlessPathMatch = parlessPathMap.find(pathWithoutFilename(path).substr(indexOfData + 5));
@@ -113,30 +138,24 @@ namespace Parless
                 if (parlessPathMatch != parlessPathMap.end())
                 {
                     parlessIndex = parlessPathMatch->second + indexOfData + 5;
-                }
 
-                override = getParlessPath(path, parlessIndex);
+                    override = path;
 
-                if (filesystem::exists(override))
-                {
-                    overridden = true;
+                    // Check if file exists in .parless path
+                    override.insert(parlessIndex, ".parless");
 
-                    path = override;
-                    path.copy(filepath, path.length());
-                    filepath[path.length()] = '\0';
-
-                    if (logParless)
+                    if (filesystem::exists(override))
                     {
-                        parlessOverrides << filepath + indexOfData << "\n";
-                        parlessOverrides.flush();
-                    }
-                }
-                else if (endsWith(path, ".par"))
-                {
-                    // If /<parname>.parless/overwrite.txt exists, prevent the original par from loading.
-                    if (filesystem::exists(path + "less/overwrite.txt"))
-                    {
-                        path.replace(splits[1], path.length() - splits[1], "/parless.par");
+                        overridden = true;
+
+                        override.copy(filepath, override.length());
+                        filepath[override.length()] = '\0';
+
+                        if (logParless)
+                        {
+                            parlessOverrides << filepath + indexOfData << "\n";
+                            parlessOverrides.flush();
+                        }
                     }
                 }
             }
@@ -368,24 +387,19 @@ void OnInitializeHook()
     // Read MLO file
     ReadModLoadOrder();
 
-    // This is filled after reading the MLO
-    if (!parlessPathMap.size())
-    {
-        loadParless = false;
-    }
+    // These maps are filled after reading the MLO
+    if (!parlessPathMap.size()) loadParless = false;
+    if (!fileModMap.size()) loadMods = false;
 
-    // Check if /mods/ exists
-    if (!fileModMap.size() || !filesystem::is_directory("mods"))
-    {
-        loadMods = false;
-    }
+    // Check if repacked pars exist (old engine only)
+    hasRepackedPars = filesystem::is_directory("mods/Parless");
 
-    if (loadParless || loadMods)
+    if (loadParless || loadMods || hasRepackedPars)
     {
         void* renameFilePathsFunc;
 
         // Open log streams if logging is enabled, remove them otherwise
-        if (logMods && loadMods) modOverrides.open("modOverrides.txt", ios::out);
+        if (logMods) modOverrides.open("modOverrides.txt", ios::out);
         else remove("modOverrides.txt");
 
         if (logParless && loadParless) parlessOverrides.open("parlessOverrides.txt", ios::out);

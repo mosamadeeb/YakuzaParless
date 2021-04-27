@@ -95,23 +95,6 @@ string translatePathDE(string path, int indexOfData, Game game, Locale locale)
 	return path;
 }
 
-/// <summary>
-/// Appends ".parless" to the path before the end index.
-/// </summary>
-/// <returns>the new modified string, or an empty string if the end index is invalid.</returns>
-string getParlessPath(string path, int end)
-{
-	string overload = "";
-
-	if (end != -1)
-	{
-		overload = path;
-		overload.insert(end, ".parless");
-	}
-
-	return overload;
-}
-
 string removeParlessPath(string path, int indexOfData)
 {
 	size_t pos = firstIndexOf(path, ".parless", indexOfData);
