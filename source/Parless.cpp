@@ -169,14 +169,18 @@ namespace Parless
 
                 if (match != fileModMap.end())
                 {
-                    // Redirect the path from /data/ to /mods/<ModName>/
-                    path.erase(indexOfData, 5);
-                    path.insert(indexOfData, "/mods/" + match->second);
+                    override = path;
 
-                    if (filesystem::exists(path))
+                    // Redirect the path from /data/ to /mods/<ModName>/
+                    override.erase(indexOfData, 5);
+                    override.insert(indexOfData, "/mods/" + match->second);
+
+                    if (filesystem::exists(override))
                     {
-                        path.copy(filepath, path.length());
-                        filepath[path.length()] = '\0';
+                        overridden = true;
+
+                        override.copy(filepath, override.length());
+                        filepath[override.length()] = '\0';
 
                         if (logMods)
                         {
