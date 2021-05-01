@@ -62,6 +62,24 @@ namespace Parless
     bool logParless;
     bool logAll;
 
+    void RebuildMLO()
+    {
+    using namespace Parless;
+    SHELLEXECUTEINFOA ShExecInfo = { 0 };
+    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    ShExecInfo.hwnd = NULL;
+    ShExecInfo.lpVerb = NULL;
+    ShExecInfo.lpFile = "RyuModManagerCLI.exe";
+    ShExecInfo.lpParameters = "test";
+    ShExecInfo.lpDirectory = NULL;
+    ShExecInfo.nShow = SW_HIDE;
+    ShExecInfo.hInstApp = NULL;
+    ShellExecuteExA(&ShExecInfo);
+    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+    CloseHandle(ShExecInfo.hProcess);
+    }
+    
     /// <summary>
     /// Renames file paths to load files from the mods directory or .parless paths instead of pars.
     /// </summary>
@@ -232,24 +250,6 @@ namespace Parless
     }
 
 };
-
-void RebuildMLO()
-{
-    using namespace Parless;
-    SHELLEXECUTEINFOA ShExecInfo = { 0 };
-    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-    ShExecInfo.hwnd = NULL;
-    ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = "RyuModManagerCLI.exe";
-    ShExecInfo.lpParameters = "test";
-    ShExecInfo.lpDirectory = NULL;
-    ShExecInfo.nShow = SW_HIDE;
-    ShExecInfo.hInstApp = NULL;
-    ShellExecuteExA(&ShExecInfo);
-    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-    CloseHandle(ShExecInfo.hProcess);
-}
 
 void ReadModLoadOrder()
 {
