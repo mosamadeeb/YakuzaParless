@@ -19,6 +19,7 @@
 #include <iostream>
 #include <fstream>
 #include <ShellAPI.h>
+#include <future>
 
 static HMODULE hDLLModule;
 
@@ -235,8 +236,19 @@ namespace Parless
 void RebuildMLO()
 {
     using namespace Parless;
-
-    ShellExecuteA(NULL, "open", "RyuModManagerCLI.exe", NULL, NULL, SW_HIDE);
+    SHELLEXECUTEINFOA ShExecInfo = { 0 };
+    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    ShExecInfo.hwnd = NULL;
+    ShExecInfo.lpVerb = NULL;
+    ShExecInfo.lpFile = "RyuModManagerCLI.exe";
+    ShExecInfo.lpParameters = "test";
+    ShExecInfo.lpDirectory = NULL;
+    ShExecInfo.nShow = SW_HIDE;
+    ShExecInfo.hInstApp = NULL;
+    ShellExecuteExA(&ShExecInfo);
+    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+    CloseHandle(ShExecInfo.hProcess);
 }
 
 void ReadModLoadOrder()
