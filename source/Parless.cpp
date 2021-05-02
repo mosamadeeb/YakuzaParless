@@ -582,7 +582,7 @@ void OnInitializeHook()
 
                 VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAWBs));
                 break;
-        }
+            }
             case Game::YakuzaLikeADragon:
                 break;
             case Game::Unsupported:
