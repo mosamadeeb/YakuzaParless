@@ -63,19 +63,19 @@ namespace Parless
 
     void RebuildMLO()
     {
-    SHELLEXECUTEINFOA ShExecInfo = { 0 };
-    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-    ShExecInfo.hwnd = NULL;
-    ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = "RyuModManagerCLI.exe";
-    ShExecInfo.lpParameters = "/s";
-    ShExecInfo.lpDirectory = NULL;
-    ShExecInfo.nShow = SW_HIDE;
-    ShExecInfo.hInstApp = NULL;
-    ShellExecuteExA(&ShExecInfo);
-    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-    CloseHandle(ShExecInfo.hProcess);
+        SHELLEXECUTEINFOA ShExecInfo = { 0 };
+        ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+        ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+        ShExecInfo.hwnd = NULL;
+        ShExecInfo.lpVerb = NULL;
+        ShExecInfo.lpFile = "RyuModManagerCLI.exe";
+        ShExecInfo.lpParameters = "/s";
+        ShExecInfo.lpDirectory = NULL;
+        ShExecInfo.nShow = SW_HIDE;
+        ShExecInfo.hInstApp = NULL;
+        ShellExecuteExA(&ShExecInfo);
+        WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+        CloseHandle(ShExecInfo.hProcess);
     }
     
     /// <summary>
