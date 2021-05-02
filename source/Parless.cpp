@@ -378,7 +378,7 @@ void OnInitializeHook()
     // LooseFilesEnabled is set to 0 by default in the INI
     loadParless = GetPrivateProfileIntW(L"Overrides", L"LooseFilesEnabled ", 1, wcModulePath);
     loadMods = GetPrivateProfileIntW(L"Overrides", L"ModsEnabled", 1, wcModulePath);
-    rebuildMLO = GetPrivateProfileIntW(L"Overrides", L"RebuildMLO", 1, wcModulePath);
+    rebuildMLO = GetPrivateProfileIntW(L"Overrides", L"RebuildMLO", 0, wcModulePath);
 
     int localeValue = GetPrivateProfileIntW(L"Overrides", L"Locale", 0, wcModulePath);
 
