@@ -414,8 +414,6 @@ void OnInitializeHook()
         RebuildMLO();
     }
 
-    
-
     // Read MLO file
     ReadModLoadOrder();
 
