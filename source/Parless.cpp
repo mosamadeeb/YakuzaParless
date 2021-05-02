@@ -69,7 +69,7 @@ namespace Parless
         ShExecInfo.hwnd = NULL;
         ShExecInfo.lpVerb = NULL;
         ShExecInfo.lpFile = "RyuModManagerCLI.exe";
-        ShExecInfo.lpParameters = "/s";
+        ShExecInfo.lpParameters = "\/s";
         ShExecInfo.lpDirectory = NULL;
         ShExecInfo.nShow = SW_HIDE;
         ShExecInfo.hInstApp = NULL;
