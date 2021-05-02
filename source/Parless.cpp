@@ -63,7 +63,6 @@ namespace Parless
 
     void RebuildMLO()
     {
-    using namespace Parless;
     SHELLEXECUTEINFOA ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
