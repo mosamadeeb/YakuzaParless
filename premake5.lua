@@ -6,7 +6,7 @@ project "YakuzaParless"
 	targetextension ".asi"
 	language "C++"
 
-	files { "**/MemoryMgr.h", "**/Trampoline.h", "**/Patterns.*", "**/HookInit.hpp" }
+	files { "**/MemoryMgr.h", "**/Trampoline.h", "**/Patterns.*", "**/HookInit.hpp", "**/Maps.*" }
 
 
 workspace "*"

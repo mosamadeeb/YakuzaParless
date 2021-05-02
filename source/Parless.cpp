@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <ShellAPI.h>
 
 static HMODULE hDLLModule;
 
@@ -46,6 +47,7 @@ namespace Parless
     // Initialized from the INI
     bool loadMods;
     bool loadParless;
+    bool rebuildMLO;
 
     bool hasRepackedPars;
 
@@ -59,6 +61,23 @@ namespace Parless
     bool logParless;
     bool logAll;
 
+    void RebuildMLO()
+    {
+        SHELLEXECUTEINFOA ShExecInfo = { 0 };
+        ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+        ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+        ShExecInfo.hwnd = NULL;
+        ShExecInfo.lpVerb = NULL;
+        ShExecInfo.lpFile = "RyuModManagerCLI.exe";
+        ShExecInfo.lpParameters = "-s";
+        ShExecInfo.lpDirectory = NULL;
+        ShExecInfo.nShow = SW_HIDE;
+        ShExecInfo.hInstApp = NULL;
+        ShellExecuteExA(&ShExecInfo);
+        WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+        CloseHandle(ShExecInfo.hProcess);
+    }
+    
     /// <summary>
     /// Renames file paths to load files from the mods directory or .parless paths instead of pars.
     /// </summary>
@@ -227,7 +246,7 @@ namespace Parless
     {
         return (uint64_t)RenameFilePaths((char*)orgY6SprintfAWBs(a1, a2, a3, a4));
     }
-    
+
 };
 
 void ReadModLoadOrder()
@@ -331,7 +350,7 @@ void ReadModLoadOrder()
 
 void OnInitializeHook()
 {
-    std::unique_ptr<ScopedUnprotect::Unprotect> Protect = ScopedUnprotect::UnprotectSectionOrFullModule( GetModuleHandle( nullptr ), ".text" );
+    std::unique_ptr<ScopedUnprotect::Unprotect> Protect = ScopedUnprotect::UnprotectSectionOrFullModule(GetModuleHandle(nullptr), ".text");
 
     using namespace Memory;
     using namespace hook;
@@ -359,6 +378,7 @@ void OnInitializeHook()
     // LooseFilesEnabled is set to 0 by default in the INI
     loadParless = GetPrivateProfileIntW(L"Overrides", L"LooseFilesEnabled ", 1, wcModulePath);
     loadMods = GetPrivateProfileIntW(L"Overrides", L"ModsEnabled", 1, wcModulePath);
+    rebuildMLO = GetPrivateProfileIntW(L"Overrides", L"RebuildMLO", 0, wcModulePath);
 
     int localeValue = GetPrivateProfileIntW(L"Overrides", L"Locale", 0, wcModulePath);
 
@@ -387,6 +407,12 @@ void OnInitializeHook()
 
     // Initialize the virtual->real map
     gameMap = getGameMap(currentGame, currentLocale);
+
+    // Rebuild the MLO file
+    if (rebuildMLO)
+    {
+        RebuildMLO();
+    }
 
     // Read MLO file
     ReadModLoadOrder();
