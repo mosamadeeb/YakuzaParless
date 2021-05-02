@@ -19,7 +19,6 @@
 #include <iostream>
 #include <fstream>
 #include <ShellAPI.h>
-#include <future>
 
 static HMODULE hDLLModule;
 
