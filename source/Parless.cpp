@@ -40,7 +40,7 @@ namespace Parless
 
     unordered_map<string, int> parlessPathMap;
 
-    int gameMapMaxSplits = 2;
+    int gameMapMaxSplits = 3;
 
     uint8_t STR_LEN_ADD = 0x40;
 

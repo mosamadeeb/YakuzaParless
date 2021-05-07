@@ -129,11 +129,13 @@ stringmap getGameMap(Game game, Locale locale)
 	string loc2 = loc2Vec[(int)locale];
 	string loc3 = loc3Vec[(int)locale];
 
+	stringmap result;
+
 	switch (game)
 	{
 		case Game::Yakuza0:
 		case Game::YakuzaKiwami:
-			return stringmap({
+			result = stringmap({
 				{"/font" , "/fontpar/font"},
 				{"/2d/sprite_" + loc2 , "/2dpar/sprite_" + loc2},
 				{"/boot" , "/bootpar/boot"},
@@ -144,15 +146,22 @@ stringmap getGameMap(Game game, Locale locale)
 				{"/wdr_" + loc2 + "/common" , "/wdr_par_" + loc2 + "/common"},
 				{"/wdr_" + loc2 , "/wdr_par_" + loc2 + "/wdr"},
 				{"/light_anim" , "/light_anim/light_anim"},
-
-				// Yakuza 0 specific
-				{"/2d/ui_" + loc1 , "/2dpar/ui_" + loc1},
-				{"/pause_" + loc1 , "/pausepar_"+ loc1 + "/pause"},
-
-				// Yakuza Kiwami specific
-				{"/2d/ui_" + loc2 , "/2dpar/ui_" + loc2},
-				{"/pause_" + loc2 , "/pausepar/pause_" + loc2},
 			});
+
+			if (game == Game::Yakuza0)
+			{
+				// Yakuza 0 specific
+				result["/2d/ui_" + loc1] = "/2dpar/ui_" + loc1;
+				result["/pause_" + loc1] = "/pausepar_" + loc1 + "/pause";
+			}
+			else
+			{
+				// Yakuza Kiwami specific
+				result["/2d/ui_" + loc2] = "/2dpar/ui_" + loc2;
+				result["/pause_" + loc2] = "/pausepar/pause_" + loc2;
+			}
+
+			return result;
 		case Game::Yakuza3:
 		case Game::Yakuza4:
 			return stringmap({
