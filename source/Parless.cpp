@@ -32,6 +32,7 @@ namespace Parless
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
 
     __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
+    __int64 (*orgY0CpkEntry)(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
     uint64_t(*orgY6SprintfAwb)(uint64_t param_1, uint64_t param_2, uint64_t param_3, uint64_t param_4);
 
     Game currentGame;
@@ -227,6 +228,11 @@ namespace Parless
     __int64 Y0AddFileEntry(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13)
     {
         return orgY0AddFileEntry(a1, RenameFilePaths(filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
+    }
+
+    __int64 Y0CpkEntry(__int64 a1, __int64 filepath, __int64 a3, __int64 a4)
+    {
+        return orgY0CpkEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4);
     }
 
     int Y6AddFileEntry(int* a1, int* a2, char* filepath)
@@ -457,6 +463,24 @@ void OnInitializeHook()
 
                 // this will take care of every file that is read from disk
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y0AddFileEntry));
+
+                // Cpk
+                if (currentGame == Game::Yakuza0)
+                {
+                    renameFilePathsFunc = get_pattern("8B 4D D7 4A 8D 74 28 20 48 83 E6 E0 48 8D BE 9F 02 00 00", -13);
+                    ReadCall(renameFilePathsFunc, orgY0CpkEntry);
+
+                    InjectHook(renameFilePathsFunc, trampoline->Jump(Y0CpkEntry));
+                }
+                else
+                {
+                    // Yakuza Kiwami
+                    renameFilePathsFunc = get_pattern("8B 4D  DF 48 8D 70 20 49 03 F6 48 83 E6 E0", -13);
+                    ReadCall(renameFilePathsFunc, orgY0CpkEntry);
+
+                    InjectHook(renameFilePathsFunc, trampoline->Jump(Y0CpkEntry));
+                }
+
                 break;
             case Game::Yakuza3:
             case Game::Yakuza4:
