@@ -8,18 +8,18 @@ Refer to [Ryu Mod Manager](https://github.com/SutandoTsukai181/RyuModManager), a
 Please check [Ryu Mod Manager wiki](https://github.com/SutandoTsukai181/RyuModManager/wiki).
 
 # Current Limitations
-While most of the files in the supported games can be redirected by Parless, there are some files that are loaded from other functions that are still unsupported. Future support for these files is expected. These files consist mostly of middleware audio and video containers. For Old Engine (Yakuza games released before Yakuza 6), this means audio/bgm and pre-rendered cutscenes. For Dragon Engine (Yakuza games not using Old Engine), a custom fix for audio was included, so only cutscenes are not supported.
+While most of the files in the supported games can be redirected by Parless, there are some files that are loaded from other functions that are still unsupported. Future support for these files is expected. These files consist mostly of middleware audio and video containers.
 
 The files can be summed up as the following:
 
-For Old Engine only:
+For Yakuza 5 only:
 ```
 ALL .usm files
 ALL .cpk files
 ALL .hca and .adx files
 ```
 
-For Dragon Engine only:
+For all games:
 ```
 ALL .usm files
 ```
