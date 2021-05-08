@@ -123,7 +123,7 @@ stringmap getGameMap(Game game, Locale locale)
 {
 	vector<const char*> loc1Vec{ "e", "j", "z", "k" };
 	vector<const char*> loc2Vec{ "c", "j", "z", "k" };
-	vector<const char*> loc3Vec{ "en", "jp", "zh", "ko" };
+	vector<const char*> loc3Vec{ "en", "ja", "zh", "ko" };
 
 	string loc1 = loc1Vec[(int)locale];
 	string loc2 = loc2Vec[(int)locale];
