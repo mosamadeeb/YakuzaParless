@@ -30,7 +30,9 @@ namespace Parless
     __int64 (*orgY5AddFileEntry)(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12, int a13, char a14);
     __int64 (*orgY0AddFileEntry)(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13);
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
-    uint64_t(*orgY6SprintfAWBs)(uint64_t param_1, uint64_t param_2, uint64_t param_3, uint64_t param_4);
+
+    __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
+    uint64_t(*orgY6SprintfAwb)(uint64_t param_1, uint64_t param_2, uint64_t param_3, uint64_t param_4);
 
     Game currentGame;
     Locale currentLocale;
@@ -210,6 +212,13 @@ namespace Parless
         return orgY3AddFileEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
     }
 
+    __int64 Y3AdxEntry(__int64 filepath, __int64 a2, __int64 a3)
+    {
+        __int64 result = orgY3AdxEntry(filepath, a2, a3);
+        filepath = (__int64)RenameFilePaths((char*)filepath);
+        return result;
+    }
+
     __int64 Y5AddFileEntry(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12, int a13, char a14)
     {
         return orgY5AddFileEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
@@ -225,9 +234,9 @@ namespace Parless
         return orgY6AddFileEntry(a1, a2, RenameFilePaths(filepath));
     }
 
-    uint64_t Y6SprintfAWBs(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4)
+    uint64_t Y6SprintfAwb(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4)
     {
-        return (uint64_t)RenameFilePaths((char*)orgY6SprintfAWBs(a1, a2, a3, a4));
+        return (uint64_t)RenameFilePaths((char*)orgY6SprintfAwb(a1, a2, a3, a4));
     }
 
 };
@@ -455,6 +464,12 @@ void OnInitializeHook()
                 ReadCall(renameFilePathsFunc, orgY3AddFileEntry);
 
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y3AddFileEntry));
+
+                // Adx
+                renameFilePathsFunc = get_pattern("48 89 5C 24 18 57 48 81 EC 90 06 00 00 48 8B 05", 0x84);
+                ReadCall(renameFilePathsFunc, orgY3AdxEntry);
+
+                InjectHook(renameFilePathsFunc, trampoline->Jump(Y3AdxEntry));
                 break;
             case Game::Yakuza5:
                 renameFilePathsFunc = get_pattern("48 89 4C 24 20 49 8B D7 48 8B 0D ? ? ? ?", 15);
@@ -532,9 +547,9 @@ void OnInitializeHook()
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("E8 ? ? ? ? 4C 8D 4C 24 60 45 33 C0 41 8B D7 49 8B CC");
-                VP::ReadCall(sprintfAWBs, orgY6SprintfAWBs);
+                VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
-                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAWBs));
+                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
                 break;
             }
             case Game::YakuzaKiwami2:
@@ -578,9 +593,9 @@ void OnInitializeHook()
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("4C 8D 4C 24 70 45 33 C0 41 8B D5 49 8B CC", -5);
-                VP::ReadCall(sprintfAWBs, orgY6SprintfAWBs);
+                VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
-                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAWBs));
+                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
                 break;
             }
             case Game::YakuzaLikeADragon:
