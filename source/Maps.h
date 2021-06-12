@@ -166,8 +166,8 @@ stringmap getGameMap(Game game, Locale locale)
 		case Game::Yakuza4:
 			return stringmap({
 				{"/font", "/fontpar/font_hd_en"}, // This is always en
-				{"/2d/cse" , "/2dpar/cse_" + loc3},
-				{"/2d/picture" , "/2dpar/picture_" + loc3},
+				{"/2d/cse" , "/2d/cse_" + loc3},
+				{"/2d/picture" , "/2d/picture_" + loc3},
 				{"/boot" , "/bootpar/boot_" + loc3},
 				{"/pause" , "/pausepar/pause_" + loc3},
 				{"/reactive_obj/object" , "/reactive_obj/object_hires"},
