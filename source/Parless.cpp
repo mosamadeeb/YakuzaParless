@@ -30,6 +30,7 @@ namespace Parless
     __int64 (*orgY5AddFileEntry)(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12, int a13, char a14);
     __int64 (*orgY0AddFileEntry)(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13);
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
+    BYTE* (*orgVFeSAddFileEntry)(BYTE* a1, int a2);
 
     __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
     __int64 (*orgY0CpkEntry)(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
@@ -103,7 +104,8 @@ namespace Parless
                 splits = splitPath(path, indexOfData, gameMapMaxSplits);
                 path = translatePath(gameMap, path, splits);
             }
-            else if (currentGame >= Game::Yakuza6)
+
+            if (currentGame >= Game::Yakuza6)
             {
                 // Dragon Engine specific translation
                 path = translatePathDE(path, indexOfData, currentGame, currentLocale);
@@ -245,7 +247,11 @@ namespace Parless
         return (uint64_t)RenameFilePaths((char*)orgY6SprintfAwb(a1, a2, a3, a4));
     }
 
-};
+    BYTE* VFeSAddFileEntry(BYTE* a1, int a2)
+    {
+        return (BYTE*)RenameFilePaths((char*)orgVFeSAddFileEntry(a1, a2));
+    }
+}
 
 void RebuildMLO()
 {
@@ -667,8 +673,21 @@ void OnInitializeHook()
                 cout << AWB_LOAD_MSG;
                 break;
             }
-            case Game::YakuzaLikeADragon:
+            case Game::VFeSports:
+            {
+                renameFilePathsFunc = get_pattern("40 BA 10 04 00 00 E8", 6);
+                ReadCall(renameFilePathsFunc, orgVFeSAddFileEntry);
+
+                InjectHook(renameFilePathsFunc, trampoline->Jump(VFeSAddFileEntry));
+                cout << FILE_LOAD_MSG;
+
+                // Not really sure if this affects anything, but just in case
+                auto stringLenAddr = get_pattern("48 89 9C 24 A0 04 00 00 48 8B F9 B9 68 00 00 00 E8", 0xC);
+                VP::Patch(stringLenAddr, 0x68 + STR_LEN_ADD);
+                cout << PATH_EXT_MSG;
                 break;
+            }
+            case Game::YakuzaLikeADragon:
             case Game::Unsupported:
             default:
                 cout << currentGameName << " is unsupported. Aborting." << endl;

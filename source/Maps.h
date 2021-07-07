@@ -22,7 +22,8 @@ enum class Game
 	// Dragon Engine
 	Yakuza6,
 	YakuzaKiwami2,
-	YakuzaLikeADragon
+	YakuzaLikeADragon,
+	VFeSports,
 };
 
 Game getGame(string name)
@@ -35,8 +36,37 @@ Game getGame(string name)
 	if (name == "Yakuza6") return Game::Yakuza6;
 	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
 	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
+	if (name == "eve") return Game::VFeSports;
 
 	return Game::Unsupported;
+}
+
+const char* getGameName(Game game)
+{
+	switch (game)
+	{
+		case Game::Yakuza3:
+			return "Yakuza 3 Remastered";
+		case Game::Yakuza4:
+			return "Yakuza 4 Remastered";
+		case Game::Yakuza5:
+			return "Yakuza 5 Remastered";
+		case Game::Yakuza0:
+			return "Yakuza 0";
+		case Game::YakuzaKiwami:
+			return "Yakuza Kiwami";
+		case Game::Yakuza6:
+			return "Yakuza 6: The Song of Life";
+		case Game::YakuzaKiwami2:
+			return "Yakuza Kiwami 2";
+		case Game::YakuzaLikeADragon:
+			return "Yakuza: Like a Dragon";
+		case Game::VFeSports:
+			return "Virtua Fighter eSports";
+		case Game::Unsupported:
+		default:
+			return "Unsupported";
+	}
 }
 
 enum class Locale
@@ -193,9 +223,16 @@ stringmap getGameMap(Game game, Locale locale)
 		case Game::Yakuza6:
 		case Game::YakuzaKiwami2:
 		case Game::YakuzaLikeADragon:
+			// Most Dragon Engine games don't need any major path translation
+			return stringmap();
+		case Game::VFeSports:
+			return stringmap({
+				{"/entity", "/entity_adam"},
+				{"/db.adam.ja", "/db.adam"},
+				{"/ui.adam.ja", "/ui.adam"},
+			});
 		case Game::Unsupported:
 		default:
-			// Dragon Engine games don't need any major path translation
 			return stringmap();
 	}
 }
