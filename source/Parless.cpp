@@ -378,6 +378,8 @@ void OnInitializeHook()
 
     using namespace Parless;
 
+    const char* VERSION = "1.3";
+
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
     const char* ADX_LOAD_MSG = "Applied ADX loading hook.\n";
@@ -420,6 +422,8 @@ void OnInitializeHook()
         FILE* fDummy;
         freopen_s(&fDummy, "CONOUT$", "w", stdout);
     }
+
+    cout << "YakuzaParless v" << VERSION << "\n\n";
 
     Trampoline* trampoline = Trampoline::MakeTrampoline(GetModuleHandle(nullptr));
 
