@@ -228,8 +228,8 @@ stringmap getGameMap(Game game, Locale locale)
 		case Game::VFeSports:
 			return stringmap({
 				{"/entity", "/entity_adam"},
-				{"/db.adam.ja", "/db.adam"},
-				{"/ui.adam.ja", "/ui.adam"},
+				{"/db.adam", "/db.adam.ja"},
+				{"/ui.adam", "/ui.adam.ja"},
 			});
 		case Game::Unsupported:
 		default:
