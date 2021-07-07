@@ -372,6 +372,12 @@ void OnInitializeHook()
 
     using namespace Parless;
 
+    const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
+    const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
+    const char* ADX_LOAD_MSG = "Applied ADX loading hook.\n";
+    const char* AWB_LOAD_MSG = "Applied AWB loading hook.\n";
+    const char* PATH_EXT_MSG = "Applied file path extension hook.\n";
+
     // Read INI variables
 
     // Obtain a path to the ASI
@@ -416,9 +422,13 @@ void OnInitializeHook()
     GetModuleFileNameW(NULL, exePath, MAX_PATH);
 
     wstring wstr(exePath);
+    string currentGameName = basenameBackslashNoExt(string(wstr.begin(), wstr.end()));
 
-    currentGame = getGame(basenameBackslashNoExt(string(wstr.begin(), wstr.end())));
+    currentGame = getGame(currentGameName);
+    currentGameName = getGameName(currentGame);
     currentLocale = localeValue < 4 && localeValue >= 0 ? Locale(localeValue) : Locale::English;
+
+    cout << "Detected game: " << currentGameName << endl;
 
     // Initialize the virtual->real map
     gameMap = getGameMap(currentGame, currentLocale);
@@ -426,20 +436,43 @@ void OnInitializeHook()
     // Rebuild the MLO file
     if (rebuildMLO)
     {
+        cout << "Rebuilding MLO... ";
         RebuildMLO();
+        cout << "DONE!\n";
     }
 
     // Read MLO file
+    cout << "Reading MLO... ";
     ReadModLoadOrder();
+    cout << "DONE!\n";
 
     // These maps are filled after reading the MLO
-    if (!parlessPathMap.size()) loadParless = false;
-    if (!fileModMap.size()) loadMods = false;
+    if (!parlessPathMap.size())
+    {
+        cout << "No \".parless\" paths were found in the MLO.\n";
+        loadParless = false;
+    }
+    if (!fileModMap.size())
+    {
+        cout << "No mod files were found in the MLO.\n";
+        loadMods = false;
+    }
 
     // Check if repacked pars exist (old engine only)
     hasRepackedPars = filesystem::is_directory("mods/Parless");
 
-    if (loadParless || loadMods || hasRepackedPars)
+    if (!hasRepackedPars)
+    {
+        cout << "No repacked pars were found.\n";
+    }
+
+    cout << endl;
+
+    if (!(loadParless || loadMods || hasRepackedPars))
+    {
+        cout << "No mods were loaded. No patches will be applied. Aborting.\n";
+    }
+    else
     {
         void* renameFilePathsFunc;
 
@@ -463,6 +496,7 @@ void OnInitializeHook()
 
                 // this will take care of every file that is read from disk
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y0AddFileEntry));
+                cout << FILE_LOAD_MSG;
 
                 // Cpk
                 if (currentGame == Game::Yakuza0)
@@ -481,6 +515,8 @@ void OnInitializeHook()
                     InjectHook(renameFilePathsFunc, trampoline->Jump(Y0CpkEntry));
                 }
 
+                cout << CPK_LOAD_MSG;
+
                 break;
             case Game::Yakuza3:
             case Game::Yakuza4:
@@ -488,18 +524,21 @@ void OnInitializeHook()
                 ReadCall(renameFilePathsFunc, orgY3AddFileEntry);
 
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y3AddFileEntry));
+                cout << FILE_LOAD_MSG;
 
                 // Adx
                 renameFilePathsFunc = get_pattern("48 89 5C 24 18 57 48 81 EC 90 06 00 00 48 8B 05", 0x84);
                 ReadCall(renameFilePathsFunc, orgY3AdxEntry);
 
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y3AdxEntry));
+                cout << ADX_LOAD_MSG;
                 break;
             case Game::Yakuza5:
                 renameFilePathsFunc = get_pattern("48 89 4C 24 20 49 8B D7 48 8B 0D ? ? ? ?", 15);
                 ReadCall(renameFilePathsFunc, orgY5AddFileEntry);
 
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y5AddFileEntry));
+                cout << FILE_LOAD_MSG;
                 break;
             case Game::Yakuza6:
             {
@@ -530,6 +569,7 @@ void OnInitializeHook()
                 memcpy(stringLenAddr, funcPayload, sizeof(funcPayload));
 
                 VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 3, space, PATCH_JUMP);
+                cout << PATH_EXT_MSG;
 
                 // Hook the AddFileEntry method to get each filepath that is loaded in the game
 
@@ -568,12 +608,14 @@ void OnInitializeHook()
                 memcpy(renameFilePathsFunc, funcPayload2, sizeof(funcPayload2));
 
                 VP::InjectHook(reinterpret_cast<intptr_t>(renameFilePathsFunc) + 3, space2, PATCH_JUMP);
+                cout << FILE_LOAD_MSG;
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("E8 ? ? ? ? 4C 8D 4C 24 60 45 33 C0 41 8B D7 49 8B CC");
                 VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
                 VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
+                cout << AWB_LOAD_MSG;
                 break;
             }
             case Game::YakuzaKiwami2:
@@ -606,6 +648,7 @@ void OnInitializeHook()
                 memcpy(stringLenAddr, funcPayload, sizeof(funcPayload));
 
                 VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 5, space, PATCH_JUMP);
+                cout << PATH_EXT_MSG;
 
                 // Hook the AddFileEntry method to get each filepath that is loaded in the game
 
@@ -614,21 +657,26 @@ void OnInitializeHook()
                 VP::ReadCall(renameFilePathsFunc, orgY6AddFileEntry);
 
                 VP::InjectHook(renameFilePathsFunc, trampoline->Jump(Y6AddFileEntry));
+                cout << FILE_LOAD_MSG;
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("4C 8D 4C 24 70 45 33 C0 41 8B D5 49 8B CC", -5);
                 VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
                 VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
+                cout << AWB_LOAD_MSG;
                 break;
             }
             case Game::YakuzaLikeADragon:
                 break;
             case Game::Unsupported:
             default:
+                cout << currentGameName << " is unsupported. Aborting." << endl;
                 break;
         }
     }
+
+    cout << "Hook function finished.\n";
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
