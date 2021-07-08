@@ -18,6 +18,8 @@ workspace "*"
 			["Resources"] = "source/**.rc"
 	}
 
+	includedirs { "source/" }
+
 	files { "source/*.h", "source/*.cpp", "source/resources/*.rc" }
 
 	-- Disable exceptions in WIL

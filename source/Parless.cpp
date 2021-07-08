@@ -5,7 +5,6 @@
 #define _WIN32_WINNT 0x0601
 
 #include <Shlwapi.h>
-#include <boost/algorithm/string.hpp>
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -18,6 +17,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <ShellAPI.h>
 
 static HMODULE hDLLModule;
@@ -171,8 +171,10 @@ namespace Parless
             {
                 // Get the path starting from /data/
                 string dataPath = path.substr(indexOfData + 5);
+                string dataPath_lowercase = dataPath;
+                std::for_each(dataPath_lowercase.begin(), dataPath_lowercase.end(), [](char& w) { w = std::tolower(w); });
 
-                stringmap::const_iterator match = fileModMap.find(boost::to_lower_copy<string>(dataPath));
+                stringmap::const_iterator match = fileModMap.find(dataPath_lowercase);
 
                 if (match != fileModMap.end())
                 {
