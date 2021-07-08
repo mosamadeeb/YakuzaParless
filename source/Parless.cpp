@@ -19,6 +19,7 @@
 #include <fstream>
 #include <algorithm>
 #include <ShellAPI.h>
+#include <mutex>
 
 static HMODULE hDLLModule;
 
@@ -55,10 +56,29 @@ namespace Parless
 
     bool hasRepackedPars;
 
+    class loggingStream {
+      std::mutex m;
+      std::ofstream o;
+    public:
+      explicit loggingStream() {};
+      _Acquires_lock_(this->m) void lock() {
+        this->m.lock();
+      }
+
+      _Releases_lock_(this->m) void unlock() {
+        this->m.unlock();
+      }
+
+      std::ofstream& operator*() {
+        return this->o;
+      }
+
+    };
+
     // Logging streams
-    ofstream modOverrides;
-    ofstream parlessOverrides;
-    ofstream allFilepaths;
+    loggingStream modOverrides;
+    loggingStream parlessOverrides;
+    loggingStream allFilepaths;
 
     // Logging variables
     bool logMods;
@@ -131,8 +151,8 @@ namespace Parless
 
                     if (logMods)
                     {
-                        modOverrides << filepath + indexOfData << "\n";
-                        modOverrides.flush();
+                        std::lock_guard<loggingStream> g_(modOverrides);
+                        (*modOverrides) << filepath + indexOfData << std::endl;
                     }
                 }
             }
@@ -160,8 +180,8 @@ namespace Parless
 
                         if (logParless)
                         {
-                            parlessOverrides << filepath + indexOfData << "\n";
-                            parlessOverrides.flush();
+                            std::lock_guard<loggingStream> g_(parlessOverrides);
+                            (*parlessOverrides) << filepath + indexOfData << std::endl;
                         }
                     }
                 }
@@ -193,8 +213,8 @@ namespace Parless
 
                         if (logMods)
                         {
-                            modOverrides << filepath + indexOfData << "\n";
-                            modOverrides.flush();
+                            std::lock_guard<loggingStream> g_(modOverrides);
+                            (*modOverrides) << filepath + indexOfData << std::endl;
                         }
                     }
                 }
@@ -204,9 +224,8 @@ namespace Parless
         if (logAll)
         {
             if (indexOfData == -1) indexOfData = 0;
-
-            allFilepaths << filepath + indexOfData << "\n";
-            allFilepaths.flush();
+            std::lock_guard<loggingStream> g_(allFilepaths);
+            (*allFilepaths) << filepath + indexOfData << std::endl;
         }
 
         return filepath;
@@ -492,13 +511,13 @@ void OnInitializeHook()
         void* renameFilePathsFunc;
 
         // Open log streams if logging is enabled, remove them otherwise
-        if (logMods) modOverrides.open("modOverrides.txt", ios::out);
+        if (logMods) (*modOverrides).open("modOverrides.txt", ios::out);
         else remove("modOverrides.txt");
 
-        if (logParless && loadParless) parlessOverrides.open("parlessOverrides.txt", ios::out);
+        if (logParless && loadParless) (*parlessOverrides).open("parlessOverrides.txt", ios::out);
         else remove("parlessOverrides.txt");
 
-        if (logAll) allFilepaths.open("allFilespaths.txt", ios::out);
+        if (logAll) (*allFilepaths).open("allFilespaths.txt", ios::out);
         else remove("allFilespaths.txt");
 
         switch (currentGame)
