@@ -287,7 +287,7 @@ void ReadModLoadOrder()
     if (!mlo)
         return;
 
-    char* magic = new char[5];
+    char magic[5];
     mlo.read(magic, 4);
     magic[4] = '\0';
 
@@ -339,7 +339,8 @@ void ReadModLoadOrder()
             name = new char[length];
             mlo.read(name, length);
 
-            mods.push_back((string)name);
+            mods.push_back(string(name));
+            delete[] name;
         }
 
         mlo.seekg(fileNameStart);
@@ -354,6 +355,7 @@ void ReadModLoadOrder()
             mlo.read(name, length);
 
             fileModMap[string(name)] = mods[index];
+            delete[] name;
         }
 
         mlo.seekg(parlessPathStart);
@@ -367,6 +369,7 @@ void ReadModLoadOrder()
             mlo.read(name, length);
 
             parlessPathMap[string(name)] = index;
+            delete[] name;
         }
     }
 }
