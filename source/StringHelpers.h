@@ -3,7 +3,7 @@
 
 using namespace std;
 
-static bool startsWith(string str1, string str2)
+static bool startsWith(string const& str1, string const& str2)
 {
 	int str1_size = str1.length();
 	int str2_size = str2.length();
@@ -14,7 +14,7 @@ static bool startsWith(string str1, string str2)
 	return str1.substr(0, str2_size).compare(str2) == 0;
 }
 
-static bool endsWith(string str1, string str2)
+static bool endsWith(string const& str1, string const& str2)
 {
 	int str1_size = str1.length();
 	int str2_size = str2.length();
@@ -25,7 +25,7 @@ static bool endsWith(string str1, string str2)
 	return str1.substr(str1_size - str2_size, str1_size).compare(str2) == 0;
 }
 
-static int firstIndexOf(string str, string sub)
+static int firstIndexOf(string const& str, string const& sub)
 {
 	size_t pos = str.find(sub);
 
@@ -35,7 +35,7 @@ static int firstIndexOf(string str, string sub)
 	return -1;
 }
 
-static int firstIndexOf(string str, string sub, int start)
+static int firstIndexOf(string const& str, string const& sub, int start)
 {
 	size_t pos = str.find(sub, start);
 
@@ -45,7 +45,7 @@ static int firstIndexOf(string str, string sub, int start)
 	return -1;
 }
 
-static int lastIndexOf(string str, string sub)
+static int lastIndexOf(string const& str, string const& sub)
 {
 	int pos = str.rfind(sub);
 
@@ -55,7 +55,7 @@ static int lastIndexOf(string str, string sub)
 	return -1;
 }
 
-static int lastIndexOf(string str, string sub, int end)
+static int lastIndexOf(string const& str, string const& sub, int end)
 {
 	int pos = str.rfind(sub, end);
 
@@ -65,7 +65,7 @@ static int lastIndexOf(string str, string sub, int end)
 	return -1;
 }
 
-static int nthIndexOf(string str, string sub, int n, int start)
+static int nthIndexOf(string const& str, string const& sub, int n, int start)
 {
 	int pos = 0;
 	int prevPos = -1;
@@ -86,7 +86,7 @@ static int nthIndexOf(string str, string sub, int n, int start)
 }
 
 // Replaces the last instance of org in str to rep
-static string rReplace(string str, string org, string rep)
+static string rReplace(string str, string const& org, string const& rep)
 {
 	int pos = lastIndexOf(str, org);
 
@@ -100,7 +100,7 @@ static string rReplace(string str, string org, string rep)
 
 // Replaces the last instance of org in str to rep.
 // Replaces the substring from org to the end of str.
-static string replaceEnd(string str, string org, string rep)
+static string replaceEnd(string str, string const& org, string const& rep)
 {
 	int pos = lastIndexOf(str, org);
 
@@ -112,7 +112,7 @@ static string replaceEnd(string str, string org, string rep)
 	return str;
 }
 
-static string pathWithoutFilename(string str)
+static string pathWithoutFilename(string const& str)
 {
 	string path = str;
 
@@ -142,29 +142,29 @@ static string basename(string str, char slash)
 	return str.substr(basename + 1, str.length() - (basename + 1));
 }
 
-static string basename(string str)
+static string basename(string const& str)
 {
 	return basename(str, '/');
 }
 
-static string basenameBackslash(string str)
+static string basenameBackslash(string const& str)
 {
 	return basename(str, '\\');
 }
 
-static string basenameNoExt(string str)
+static string basenameNoExt(string const& str)
 {
 	string base = basename(str);
 	return base.erase(base.length() - 4);
 }
 
-static string basenameBackslashNoExt(string str)
+static string basenameBackslashNoExt(string const& str)
 {
 	string base = basenameBackslash(str);
 	return base.erase(base.length() - 4);
 }
 
-static string headname(string str, int start)
+static string headname(string const& str, int start)
 {
 	// find first "/"
 	if (start <= str.length())
@@ -186,7 +186,7 @@ static string headname(string str, int start)
 /// <param name="path">path to split</param>
 /// <param name="maxNumOfDirs">maximum number of splits to have</param>
 /// <returns>array of split indices</returns>
-static vector<int> splitPath(string path, int start, int maxNumOfSplits)
+static vector<int> splitPath(string const& path, int start, int maxNumOfSplits)
 {
 	int max = maxNumOfSplits + 1;
 	vector<int> parts(max);
