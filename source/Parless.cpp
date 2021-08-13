@@ -502,9 +502,9 @@ void OnInitializeHook()
 
     cout << endl;
 
-    if (!(loadParless || loadMods || hasRepackedPars))
+    if (!(loadParless || loadMods || hasRepackedPars || logAll))
     {
-        cout << "No mods were loaded. No patches will be applied. Aborting.\n";
+        cout << "No mods were loaded. LogAll is disabled. No patches will be applied. Aborting.\n";
     }
     else
     {
