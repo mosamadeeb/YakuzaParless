@@ -398,7 +398,7 @@ void OnInitializeHook()
 {
     std::unique_ptr<ScopedUnprotect::Unprotect> Protect = ScopedUnprotect::UnprotectSectionOrFullModule(GetModuleHandle(nullptr), ".text");
 
-    using namespace Memory;
+    using namespace Memory::VP;
     using namespace hook;
 
     using namespace Parless;
@@ -544,7 +544,7 @@ void OnInitializeHook()
                 else
                 {
                     // Yakuza Kiwami
-                    renameFilePathsFunc = get_pattern("8B 4D  DF 48 8D 70 20 49 03 F6 48 83 E6 E0", -13);
+                    renameFilePathsFunc = get_pattern("8B 4D DF 48 8D 70 20 49 03 F6 48 83 E6 E0", -13);
                     ReadCall(renameFilePathsFunc, orgY0CpkEntry);
 
                     InjectHook(renameFilePathsFunc, trampoline->Jump(Y0CpkEntry));
@@ -594,7 +594,7 @@ void OnInitializeHook()
                 std::byte* space = trampolineStringLen->RawSpace(sizeof(spacePayload));
                 memcpy(space, spacePayload, sizeof(spacePayload));
 
-                VP::WriteOffsetValue(space + 3 + 2 + 4 + 3 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 8);
+                WriteOffsetValue(space + 3 + 2 + 4 + 3 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 8);
 
                 const uint8_t funcPayload[] = {
                     0x48, 0x8B, 0xDB, // mov rbx, rbx
@@ -603,7 +603,7 @@ void OnInitializeHook()
 
                 memcpy(stringLenAddr, funcPayload, sizeof(funcPayload));
 
-                VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 3, space, PATCH_JUMP);
+                InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 3, space, PATCH_JUMP);
                 cout << PATH_EXT_MSG;
 
                 // Hook the AddFileEntry method to get each filepath that is loaded in the game
@@ -630,8 +630,8 @@ void OnInitializeHook()
                 orgY6AddFileEntry = {};
                 memcpy(std::addressof(orgY6AddFileEntry), &srcAddr, sizeof(srcAddr));
 
-                VP::InjectHook(space2, trampoline->Jump(Y6AddFileEntry));
-                VP::WriteOffsetValue(space2 + 5 + 5 + 1 + 1 + 2 + 1, reinterpret_cast<intptr_t>(renameFilePathsFunc) + 9);
+                InjectHook(space2, trampoline->Jump(Y6AddFileEntry));
+                WriteOffsetValue(space2 + 5 + 5 + 1 + 1 + 2 + 1, reinterpret_cast<intptr_t>(renameFilePathsFunc) + 9);
 
                 // First byte of the function is not writable for some reason, so instead we make the instruction do nothing
                 const uint8_t funcPayload2[] = {
@@ -642,14 +642,14 @@ void OnInitializeHook()
 
                 memcpy(renameFilePathsFunc, funcPayload2, sizeof(funcPayload2));
 
-                VP::InjectHook(reinterpret_cast<intptr_t>(renameFilePathsFunc) + 3, space2, PATCH_JUMP);
+                InjectHook(reinterpret_cast<intptr_t>(renameFilePathsFunc) + 3, space2, PATCH_JUMP);
                 cout << FILE_LOAD_MSG;
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("E8 ? ? ? ? 4C 8D 4C 24 60 45 33 C0 41 8B D7 49 8B CC");
-                VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
+                ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
-                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
+                InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
                 cout << AWB_LOAD_MSG;
                 break;
             }
@@ -672,7 +672,7 @@ void OnInitializeHook()
                 std::byte* space = trampolineStringLen->RawSpace(sizeof(spacePayload));
                 memcpy(space, spacePayload, sizeof(spacePayload));
 
-                VP::WriteOffsetValue(space + 3 + 4 + 3 + 4 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 0xA);
+                WriteOffsetValue(space + 3 + 4 + 3 + 4 + 1, reinterpret_cast<intptr_t>(stringLenAddr) + 0xA);
 
                 const uint8_t funcPayload[] = {
                     0x48, 0x8B, 0xDB, // mov rbx, rbx
@@ -682,23 +682,23 @@ void OnInitializeHook()
 
                 memcpy(stringLenAddr, funcPayload, sizeof(funcPayload));
 
-                VP::InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 5, space, PATCH_JUMP);
+                InjectHook(reinterpret_cast<intptr_t>(stringLenAddr) + 5, space, PATCH_JUMP);
                 cout << PATH_EXT_MSG;
 
                 // Hook the AddFileEntry method to get each filepath that is loaded in the game
 
                 // Unlike Y6, K2 has a good place to hook the call instead of hooking the first instruction of the function
                 renameFilePathsFunc = get_pattern("4C 8D 44 24 20 48 8B D3 48 8B CF", -5);
-                VP::ReadCall(renameFilePathsFunc, orgY6AddFileEntry);
+                ReadCall(renameFilePathsFunc, orgY6AddFileEntry);
 
-                VP::InjectHook(renameFilePathsFunc, trampoline->Jump(Y6AddFileEntry));
+                InjectHook(renameFilePathsFunc, trampoline->Jump(Y6AddFileEntry));
                 cout << FILE_LOAD_MSG;
 
                 // AWB files are not passed over to the normal file entry function
                 auto sprintfAWBs = get_pattern("4C 8D 4C 24 70 45 33 C0 41 8B D5 49 8B CC", -5);
-                VP::ReadCall(sprintfAWBs, orgY6SprintfAwb);
+                ReadCall(sprintfAWBs, orgY6SprintfAwb);
 
-                VP::InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
+                InjectHook(sprintfAWBs, trampoline->Jump(Y6SprintfAwb));
                 cout << AWB_LOAD_MSG;
                 break;
             }
@@ -712,7 +712,7 @@ void OnInitializeHook()
 
                 // Not really sure if this affects anything, but just in case
                 auto stringLenAddr = get_pattern("48 89 9C 24 A0 04 00 00 48 8B F9 B9 68 00 00 00 E8", 0xC);
-                VP::Patch(stringLenAddr, 0x68 + STR_LEN_ADD);
+                Patch(stringLenAddr, 0x68 + STR_LEN_ADD);
                 cout << PATH_EXT_MSG;
                 break;
             }
