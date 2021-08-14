@@ -34,6 +34,10 @@ namespace Parless
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
     BYTE* (*orgVFeSAddFileEntry)(BYTE* a1, int a2);
 
+    typedef uint64_t (*t_orgYLaDAddFileEntry)(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5);
+    t_orgYLaDAddFileEntry orgYLaDAddFileEntry = NULL;
+    t_orgYLaDAddFileEntry (*hookYLaDAddFileEntry) = NULL;
+
     __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
     __int64 (*orgY0CpkEntry)(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
     uint64_t(*orgY6SprintfAwb)(uint64_t param_1, uint64_t param_2, uint64_t param_3, uint64_t param_4);
@@ -272,6 +276,11 @@ namespace Parless
     BYTE* VFeSAddFileEntry(BYTE* a1, int a2)
     {
         return (BYTE*)RenameFilePaths((char*)orgVFeSAddFileEntry(a1, a2));
+    }
+
+    uint64_t YLaDAddFileEntry(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
+    {
+        return (uint64_t)RenameFilePaths((char*)orgYLaDAddFileEntry(a1, a2, a3, a4, a5));
     }
 }
 
@@ -717,6 +726,31 @@ void OnInitializeHook()
                 break;
             }
             case Game::YakuzaLikeADragon:
+            {
+                if (MH_Initialize() != MH_OK)
+                {
+                    cout << "Minhook initialization failed. Aborting.\n";
+                    return;
+                }
+
+                renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                ReadCall(renameFilePathsFunc, hookYLaDAddFileEntry);
+
+                if (MH_CreateHook(hookYLaDAddFileEntry, &YLaDAddFileEntry, reinterpret_cast<LPVOID*>(&orgYLaDAddFileEntry)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hookYLaDAddFileEntry) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                cout << FILE_LOAD_MSG;
+                break;
+            }
             case Game::Unsupported:
             default:
                 cout << currentGameName << " is unsupported. Aborting." << endl;
