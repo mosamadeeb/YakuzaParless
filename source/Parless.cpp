@@ -11,6 +11,7 @@
 #include "Utils/MemoryMgr.h"
 #include "Utils/Trampoline.h"
 #include "Utils/Patterns.h"
+#include <MinHook.h>
 #include <Maps.h>
 
 #include <algorithm>

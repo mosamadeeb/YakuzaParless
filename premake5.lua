@@ -1,38 +1,46 @@
 workspace "YakuzaParless"
 	platforms { "Win64" }
+	startproject "YakuzaParless"
+
+project "MinHook"
+	kind "StaticLib"
+	language "C++"
+	files { "source/minhook/**" }
 
 project "YakuzaParless"
 	kind "SharedLib"
 	targetextension ".asi"
 	language "C++"
+	links { "MinHook" }
 
 	files { "**/MemoryMgr.h", "**/Trampoline.h", "**/Patterns.*", "**/HookInit.hpp", "**/Maps.*" }
-
-
-workspace "*"
-	configurations { "Debug", "Release", "Master" }
-	location "build"
 
 	vpaths { ["Headers/*"] = "source/**.h",
 			["Sources/*"] = { "source/**.c", "source/**.cpp" },
 			["Resources"] = "source/**.rc"
 	}
 
-	includedirs { "source/" }
+	includedirs { "source/", "source/minhook/include" }
 
 	files { "source/*.h", "source/*.cpp", "source/resources/*.rc" }
 
 	-- Disable exceptions in WIL
 	defines { "WIL_SUPPRESS_EXCEPTIONS" }
 
-	cppdialect "C++17"
-	staticruntime "on"
-	buildoptions { "/sdl" }
-	warnings "Extra"
 
 	-- Automated defines for resources
 	defines { "rsc_Extension=\"%{prj.targetextension}\"",
 			"rsc_Name=\"%{prj.name}\"" }
+
+
+workspace "*"
+	configurations { "Debug", "Release", "Master" }
+	location "build"
+
+	cppdialect "C++17"
+	staticruntime "on"
+	buildoptions { "/sdl" }
+	warnings "Extra"
 
 filter "configurations:Debug"
 	defines { "DEBUG" }
