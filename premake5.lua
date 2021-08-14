@@ -27,6 +27,8 @@ project "YakuzaParless"
 	-- Disable exceptions in WIL
 	defines { "WIL_SUPPRESS_EXCEPTIONS" }
 
+	-- Required when compiling for denuvo protected games
+	defines { "DENUVO_SKIP_IAT" }
 
 	-- Automated defines for resources
 	defines { "rsc_Extension=\"%{prj.targetextension}\"",

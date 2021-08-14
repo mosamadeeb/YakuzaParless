@@ -1,6 +1,7 @@
 [submodule "source/Utils"]
 	path = source/Utils
-	url = https://github.com/CookiePLMonster/ModUtils.git
+	url = https://github.com/SutandoTsukai181/ModUtils.git
+	branch = denuvo-iat
 [submodule "source/minhook"]
 	path = source/minhook
 	url = https://github.com/TsudaKageyu/minhook
