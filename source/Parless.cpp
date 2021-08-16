@@ -54,10 +54,15 @@ namespace Parless
 
     uint8_t STR_LEN_ADD = 0x40;
 
+    string asiPath;
+
     // Initialized from the INI
     bool loadMods;
     bool loadParless;
     bool rebuildMLO;
+
+    // Mod paths will be relative to the ASI's directory instead of the game's directory (to support undumped UWP games)
+    bool isUwp;
 
     bool hasRepackedPars;
 
@@ -146,6 +151,12 @@ namespace Parless
                 override.erase(indexOfData, 5);
                 override.insert(indexOfData, "/mods/Parless");
 
+                if (isUwp)
+                {
+                    override = asiPath + override.substr(indexOfData);
+                    indexOfData = asiPath.length();
+                }
+
                 if (filesystem::exists(override))
                 {
                     overridden = true;
@@ -215,6 +226,12 @@ namespace Parless
                     // Redirect the path from /data/ to /mods/<ModName>/
                     override.erase(indexOfData, 5);
                     override.insert(indexOfData, "/mods/" + match->second);
+
+                    if (isUwp)
+                    {
+                        override = asiPath + override.substr(indexOfData);
+                        indexOfData = asiPath.length();
+                    }
 
                     if (filesystem::exists(override))
                     {
@@ -326,7 +343,7 @@ void ReadModLoadOrder()
     using namespace Parless;
 
     const char* MLO_MAGIC = "_OLM";
-    const char* MLO_FILE = "YakuzaParless.mlo";
+    string MLO_FILE = asiPath + "/YakuzaParless.mlo";
 
     if (!filesystem::exists(MLO_FILE))
         return;
@@ -447,6 +464,12 @@ void OnInitializeHook()
     GetModuleFileNameW(hDLLModule, wcModulePath, _countof(wcModulePath) - 3); // Minus max required space for extension
     PathRenameExtensionW(wcModulePath, L".ini");
 
+    // Store the ASI's path for later
+    wstring asiPathW(wcModulePath);
+    asiPath = string(asiPathW.begin(), asiPathW.end());
+    replace(asiPath.begin(), asiPath.end(), '\\', '/');
+    asiPath = pathWithoutFilename(asiPath);
+
     if (GetPrivateProfileIntW(L"Parless", L"TempDisabled", 0, wcModulePath))
     {
         WritePrivateProfileStringW(L"Parless", L"TempDisabled", L"0", wcModulePath);
@@ -468,6 +491,8 @@ void OnInitializeHook()
     logMods = GetPrivateProfileIntW(L"Logs", L"LogMods", 0, wcModulePath);
     logParless = GetPrivateProfileIntW(L"Logs", L"LogParless", 0, wcModulePath);
     logAll = GetPrivateProfileIntW(L"Logs", L"LogAll", 0, wcModulePath);
+
+    isUwp = GetPrivateProfileIntW(L"UWP", L"UWPGame", -1, wcModulePath) != -1;
 
     if (GetPrivateProfileIntW(L"Debug", L"ConsoleEnabled", 0, wcModulePath))
     {
@@ -492,7 +517,7 @@ void OnInitializeHook()
     currentGameName = getGameName(currentGame);
     currentLocale = localeValue < 4 && localeValue >= 0 ? Locale(localeValue) : Locale::English;
 
-    cout << "Detected game: " << currentGameName << endl;
+    cout << "Detected game: " << currentGameName << (isUwp ? " UWP version" : "") << endl;
 
     // Initialize the virtual->real map
     gameMap = getGameMap(currentGame, currentLocale);
@@ -538,17 +563,28 @@ void OnInitializeHook()
     }
     else
     {
-        void* renameFilePathsFunc;
+        char pathToLog[MAX_PATH];
 
         // Open log streams if logging is enabled, remove them otherwise
-        if (logMods) (*modOverrides).open("modOverrides.txt", ios::out);
-        else remove("modOverrides.txt");
+        asiPath.copy(pathToLog, asiPath.length());
+        pathToLog[asiPath.length()] = '\0';
+        strcat_s(pathToLog, "/modOverrides.txt");
+        if (logMods) (*modOverrides).open(pathToLog, ios::out);
+        else remove(pathToLog);
 
-        if (logParless && loadParless) (*parlessOverrides).open("parlessOverrides.txt", ios::out);
-        else remove("parlessOverrides.txt");
+        asiPath.copy(pathToLog, asiPath.length());
+        pathToLog[asiPath.length()] = '\0';
+        strcat_s(pathToLog, "/parlessOverrides.txt");
+        if (logParless && loadParless) (*parlessOverrides).open(pathToLog, ios::out);
+        else remove(pathToLog);
 
-        if (logAll) (*allFilepaths).open("allFilespaths.txt", ios::out);
-        else remove("allFilespaths.txt");
+        asiPath.copy(pathToLog, asiPath.length());
+        pathToLog[asiPath.length()] = '\0';
+        strcat_s(pathToLog, "/allFilespaths.txt");
+        if (logAll) (*allFilepaths).open(pathToLog, ios::out);
+        else remove(pathToLog);
+
+        void* renameFilePathsFunc;
 
         switch (currentGame)
         {
