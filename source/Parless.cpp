@@ -141,7 +141,7 @@ namespace Parless
                 path = translatePath(gameMap, path, splits);
             }
 
-            if (currentGame >= Game::Yakuza6)
+            if (currentGame >= Game::Yakuza6 && currentGame < Game::YakuzaLikeADragon)
             {
                 // Dragon Engine specific translation
                 path = translatePathDE(path, indexOfData, currentGame, currentLocale);

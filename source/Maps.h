@@ -222,9 +222,25 @@ stringmap getGameMap(Game game, Locale locale)
 			});
 		case Game::Yakuza6:
 		case Game::YakuzaKiwami2:
-		case Game::YakuzaLikeADragon:
 			// Most Dragon Engine games don't need any major path translation
 			return stringmap();
+		case Game::YakuzaLikeADragon:
+		{
+			string curLoc;
+			vector<const char*> locY7Vec{ "de", "en", "es", "fr", "it", "ja", "ko", "pt", "ru", "zh", "zhs" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_yazawa";
+
+			for (int i = 0; i < locY7Vec.size(); i++)
+			{
+				curLoc = string(locY7Vec[i]);
+				result["/db.yazawa/" + curLoc] = "/db.yazawa." + curLoc;
+				result["/ui.yazawa/" + curLoc] = "/ui.yazawa." + curLoc;
+			}
+
+			return result;
+		}
 		case Game::VFeSports:
 			return stringmap({
 				{"/entity", "/entity_adam"},
