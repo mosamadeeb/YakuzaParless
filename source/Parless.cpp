@@ -93,11 +93,13 @@ namespace Parless
     /// <summary>
     /// Renames file paths to load files from the mods directory or .parless paths instead of pars.
     /// </summary>
-    /// <returns></returns>
-    char* RenameFilePaths(char* filepath)
+    /// <returns>true if the path was overridden</returns>
+    bool RenameFilePaths(char* filepath)
     {
-        char* datapath;
+        string override = "";
+        bool overridden = false;
 
+        char* datapath;
         string path(filepath);
 
         size_t indexOfData = firstIndexOf(path, "/data/");
@@ -136,9 +138,6 @@ namespace Parless
                 path = translatePathDE(path, indexOfData, currentGame, currentLocale);
             }
 
-            string override = "";
-            bool overridden = false;
-
             if (hasRepackedPars && endsWith(path, ".par"))
             {
                 override = path;
@@ -159,6 +158,10 @@ namespace Parless
                         std::lock_guard<loggingStream> g_(modOverrides);
                         (*modOverrides) << filepath + indexOfData << std::endl;
                     }
+                }
+                else
+                {
+                    cout << "Par not found: " << override << std::endl;
                 }
             }
 
@@ -188,6 +191,10 @@ namespace Parless
                             std::lock_guard<loggingStream> g_(parlessOverrides);
                             (*parlessOverrides) << filepath + indexOfData << std::endl;
                         }
+                    }
+                    else
+                    {
+                        cout << ".parless file not found: " << override << std::endl;
                     }
                 }
             }
@@ -222,6 +229,10 @@ namespace Parless
                             (*modOverrides) << filepath + indexOfData << std::endl;
                         }
                     }
+                    else
+                    {
+                        cout << "Mod file not found: " << override << std::endl;
+                    }
                 }
             }
         }
@@ -233,49 +244,58 @@ namespace Parless
             (*allFilepaths) << filepath + indexOfData << std::endl;
         }
 
-        return filepath;
+        return overridden;
     }
 
     __int64 Y3AddFileEntry(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12)
     {
-        return orgY3AddFileEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+        RenameFilePaths((char*)filepath);
+        return orgY3AddFileEntry(a1, filepath, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
     }
 
     __int64 Y3AdxEntry(__int64 filepath, __int64 a2, __int64 a3)
     {
         __int64 result = orgY3AdxEntry(filepath, a2, a3);
-        filepath = (__int64)RenameFilePaths((char*)filepath);
+        RenameFilePaths((char*)filepath);
         return result;
     }
 
     __int64 Y5AddFileEntry(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12, int a13, char a14)
     {
-        return orgY5AddFileEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
+        RenameFilePaths((char*)filepath);
+        return orgY5AddFileEntry(a1, filepath, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
     }
 
     __int64 Y0AddFileEntry(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13)
     {
-        return orgY0AddFileEntry(a1, RenameFilePaths(filepath), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
+        RenameFilePaths(filepath);
+        return orgY0AddFileEntry(a1, filepath, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
     }
 
     __int64 Y0CpkEntry(__int64 a1, __int64 filepath, __int64 a3, __int64 a4)
     {
-        return orgY0CpkEntry(a1, (__int64)RenameFilePaths((char*)filepath), a3, a4);
+        RenameFilePaths((char*)filepath);
+        return orgY0CpkEntry(a1, filepath, a3, a4);
     }
 
     int Y6AddFileEntry(int* a1, int* a2, char* filepath)
     {
-        return orgY6AddFileEntry(a1, a2, RenameFilePaths(filepath));
+        RenameFilePaths(filepath);
+        return orgY6AddFileEntry(a1, a2, filepath);
     }
 
     uint64_t Y6SprintfAwb(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4)
     {
-        return (uint64_t)RenameFilePaths((char*)orgY6SprintfAwb(a1, a2, a3, a4));
+        uint64_t result = orgY6SprintfAwb(a1, a2, a3, a4);
+        RenameFilePaths((char*)result);
+        return result;
     }
 
     BYTE* VFeSAddFileEntry(BYTE* a1, int a2)
     {
-        return (BYTE*)RenameFilePaths((char*)orgVFeSAddFileEntry(a1, a2));
+        BYTE* result = orgVFeSAddFileEntry(a1, a2);
+        RenameFilePaths((char*)result);
+        return result;
     }
 
     uint64_t YLaDAddFileEntry(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
