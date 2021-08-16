@@ -34,9 +34,13 @@ namespace Parless
     int (*orgY6AddFileEntry)(int* param_1, int* param_2, char* param_3);
     BYTE* (*orgVFeSAddFileEntry)(BYTE* a1, int a2);
 
-    typedef uint64_t (*t_orgYLaDAddFileEntry)(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5);
+    typedef char* (*t_orgYLaDAddFileEntry)(char* a1, uint64_t a2, char* a3, char* a4);
     t_orgYLaDAddFileEntry orgYLaDAddFileEntry = NULL;
     t_orgYLaDAddFileEntry (*hookYLaDAddFileEntry) = NULL;
+
+    typedef void (*t_orgYLaDFilepath)(char* a1, uint64_t a2, char* a3, uint64_t a4);
+    t_orgYLaDFilepath orgYLaDFilepath = NULL;
+    t_orgYLaDFilepath(*hookYLaDFilepath) = NULL;
 
     __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
     __int64 (*orgY0CpkEntry)(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
@@ -315,9 +319,17 @@ namespace Parless
         return result;
     }
 
-    uint64_t YLaDAddFileEntry(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5)
+    char* YLaDAddFileEntry(char* a1, uint64_t a2, char* a3, char* a4)
     {
-        return (uint64_t)RenameFilePaths((char*)orgYLaDAddFileEntry(a1, a2, a3, a4, a5));
+        char* result = orgYLaDAddFileEntry(a1, a2, a3, a4);
+        RenameFilePaths(a1);
+        return result;
+    }
+
+    void YLaDFilepath(char* a1, uint64_t a2, char* a3, uint64_t a4)
+    {
+        RenameFilePaths(a3);
+        orgYLaDFilepath(a1, a2, a3, a4);
     }
 }
 
@@ -789,7 +801,28 @@ void OnInitializeHook()
                     return;
                 }
 
-                renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                // Y7 needs hooks for two different functions
+
+                // File loading hook
+                if (isUwp)
+                {
+                    renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                }
+                else
+                {
+                    auto pat = pattern("48 89 54 24 10 4C 89 44 24 18 4C 89 4C 24 20 48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8");
+                    
+                    // Try the UWP pattern if the main pattern doesn't match
+                    if (pat.size() < 5)
+                    {
+                        renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                    }
+                    else
+                    {
+                        renameFilePathsFunc = pat.get(4).get<void>(32);
+                    }
+                }
+
                 ReadCall(renameFilePathsFunc, hookYLaDAddFileEntry);
 
                 if (MH_CreateHook(hookYLaDAddFileEntry, &YLaDAddFileEntry, reinterpret_cast<LPVOID*>(&orgYLaDAddFileEntry)) != MH_OK)
@@ -799,6 +832,30 @@ void OnInitializeHook()
                 }
 
                 if (MH_EnableHook(hookYLaDAddFileEntry) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                // Filepath hook
+                if (isUwp)
+                {
+                    renameFilePathsFunc = get_pattern("44 8D 4F 03 BA 10 04 00 00 4C 8D 84 24 50 06 00 00 48 8D 8C 24 60 0A 00 00 E8", 25);
+                }
+                else
+                {
+                    renameFilePathsFunc = get_pattern("44 8D 4D 03 4C 8D 84 24 40 02 00 00 BA 10 04 00 00 48 8D 8C 24 B0 0C 00 00 E8", 25);
+                }
+
+                ReadCall(renameFilePathsFunc, hookYLaDFilepath);
+
+                if (MH_CreateHook(hookYLaDFilepath, &YLaDFilepath, reinterpret_cast<LPVOID*>(&orgYLaDFilepath)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hookYLaDFilepath) != MH_OK)
                 {
                     cout << "Hook could not be enabled. Aborting.\n";
                     return;
