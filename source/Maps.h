@@ -235,8 +235,8 @@ stringmap getGameMap(Game game, Locale locale)
 			for (int i = 0; i < locY7Vec.size(); i++)
 			{
 				curLoc = string(locY7Vec[i]);
-				result["/db.yazawa/" + curLoc] = "/db.yazawa." + curLoc;
-				result["/ui.yazawa/" + curLoc] = "/ui.yazawa." + curLoc;
+				result["/db.yazawa/" + curLoc] = "/db.yazawa." + curLoc + "/" + curLoc;
+				result["/ui.yazawa/" + curLoc] = "/ui.yazawa." + curLoc + "/" + curLoc;
 			}
 
 			return result;
