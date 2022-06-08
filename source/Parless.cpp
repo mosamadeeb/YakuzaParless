@@ -340,7 +340,7 @@ void RebuildMLO()
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
     ShExecInfo.hwnd = NULL;
     ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = "RyuModManagerCLI.exe";
+    ShExecInfo.lpFile = "RyuModManager.exe";
     ShExecInfo.lpParameters = "-s";
     ShExecInfo.lpDirectory = NULL;
     ShExecInfo.nShow = SW_HIDE;
@@ -461,7 +461,7 @@ void OnInitializeHook()
 
     using namespace Parless;
 
-    const char* VERSION = "1.5";
+    const char* VERSION = "1.5.1";
 
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
