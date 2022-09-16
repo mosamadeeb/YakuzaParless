@@ -111,12 +111,12 @@ namespace Parless
         char* datapath;
         string path(filepath);
 
-        size_t indexOfData = firstIndexOf(path, "/data/");
+        size_t indexOfData = firstIndexOf(path, "data/");
 
         if (indexOfData == -1 && loadMods)
         {
             // File might be in mods instead, which means we're receiving it modified
-            indexOfData = firstIndexOf(path, "/mods/");
+            indexOfData = firstIndexOf(path, "mods/");
 
             if (indexOfData != -1)
             {
@@ -151,9 +151,9 @@ namespace Parless
             {
                 override = path;
 
-                // Redirect the path from /data/ to /mods/Parless/
-                override.erase(indexOfData, 5);
-                override.insert(indexOfData, "/mods/Parless");
+                // Redirect the path from data/ to mods/Parless/
+                override.erase(indexOfData, 4);
+                override.insert(indexOfData, "mods/Parless");
 
                 if (isUwp)
                 {
@@ -183,11 +183,11 @@ namespace Parless
             if (loadParless && !overridden)
             {
                 int parlessIndex = -1;
-                unordered_map<string, int>::const_iterator parlessPathMatch = parlessPathMap.find(pathWithoutFilename(path).substr(indexOfData + 5));
+                unordered_map<string, int>::const_iterator parlessPathMatch = parlessPathMap.find(pathWithoutFilename(path).substr(indexOfData + 4));
 
                 if (parlessPathMatch != parlessPathMap.end())
                 {
-                    parlessIndex = parlessPathMatch->second + indexOfData + 5;
+                    parlessIndex = parlessPathMatch->second + indexOfData + 4;
 
                     override = path;
 
@@ -216,8 +216,8 @@ namespace Parless
 
             if (loadMods && !overridden)
             {
-                // Get the path starting from /data/
-                string dataPath = path.substr(indexOfData + 5);
+                // Get the path starting from data/
+                string dataPath = path.substr(indexOfData + 4);
                 string dataPath_lowercase = dataPath;
                 std::for_each(dataPath_lowercase.begin(), dataPath_lowercase.end(), [](char& w) { w = std::tolower(w); });
 
@@ -227,9 +227,9 @@ namespace Parless
                 {
                     override = path;
 
-                    // Redirect the path from /data/ to /mods/<ModName>/
-                    override.erase(indexOfData, 5);
-                    override.insert(indexOfData, "/mods/" + match->second);
+                    // Redirect the path from data/ to mods/<ModName>/
+                    override.erase(indexOfData, 4);
+                    override.insert(indexOfData, "mods/" + match->second);
 
                     if (isUwp)
                     {

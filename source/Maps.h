@@ -118,7 +118,7 @@ string translatePath(stringmap pathMap, string path, vector<int> parts)
 
 string translatePathDE(string path, int indexOfData, Game game, Locale locale)
 {
-	if (firstIndexOf(path, "/data/entity", indexOfData) != -1 && endsWith(path, ".txt"))
+	if (firstIndexOf(path, "data/entity", indexOfData) != -1 && endsWith(path, ".txt"))
 	{
 		string loc = "/ja/";
 		if (locale == Locale::English)
@@ -147,11 +147,11 @@ string removeParlessPath(string path, int indexOfData)
 
 string removeModPath(string path, int indexOfData)
 {
-	size_t pos = firstIndexOf(path, "/", indexOfData + 7);
+	size_t pos = firstIndexOf(path, "/", indexOfData + 6);
 
 	if (pos != -1)
 	{
-		path = path.replace(indexOfData, pos - indexOfData, "/data");
+		path = path.replace(indexOfData, pos - indexOfData, "data");
 	}
 
 	return path;
