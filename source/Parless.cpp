@@ -619,6 +619,8 @@ void OnInitializeHook()
 
         void* renameFilePathsFunc;
 
+        bool minhookInit = false;
+
         switch (currentGame)
         {
             case Game::Yakuza0:
@@ -817,11 +819,13 @@ void OnInitializeHook()
             case Game::YakuzaLikeADragon:
             case Game::Judgment:
             {
-                if (MH_Initialize() != MH_OK)
+                if (!minhookInit && MH_Initialize() != MH_OK)
                 {
                     cout << "Minhook initialization failed. Aborting.\n";
                     return;
                 }
+
+                minhookInit = true;
 
                 // Y7/JE need hooks for two different functions
 
@@ -853,11 +857,13 @@ void OnInitializeHook()
             }
             case Game::LostJudgment:
             {
-                if (MH_Initialize() != MH_OK)
+                if (!minhookInit && MH_Initialize() != MH_OK)
                 {
                     cout << "Minhook initialization failed. Aborting.\n";
                     return;
                 }
+
+                minhookInit = true;
 
                 // File loading hook
                 if (isUwp)
