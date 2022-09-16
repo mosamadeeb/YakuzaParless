@@ -98,6 +98,7 @@ namespace Parless
     bool logMods;
     bool logParless;
     bool logAll;
+    bool ignoreNonPaths;
     
     /// <summary>
     /// Renames file paths to load files from the mods directory or .parless paths instead of pars.
@@ -260,9 +261,16 @@ namespace Parless
 
         if (logAll)
         {
-            if (indexOfData == -1) indexOfData = 0;
-            std::lock_guard<loggingStream> g_(allFilepaths);
-            (*allFilepaths) << filepath + indexOfData << std::endl;
+            if (indexOfData != -1 || !ignoreNonPaths)
+            {
+                if (indexOfData == -1)
+                {
+                    indexOfData = 0;
+                }
+
+                std::lock_guard<loggingStream> g_(allFilepaths);
+                (*allFilepaths) << filepath + indexOfData << std::endl;
+            }
         }
 
         return overridden;
@@ -503,6 +511,7 @@ void OnInitializeHook()
     logMods = GetPrivateProfileIntW(L"Logs", L"LogMods", 0, wcModulePath);
     logParless = GetPrivateProfileIntW(L"Logs", L"LogParless", 0, wcModulePath);
     logAll = GetPrivateProfileIntW(L"Logs", L"LogAll", 0, wcModulePath);
+    ignoreNonPaths = GetPrivateProfileIntW(L"Logs", L"IgnoreNonPaths", 1, wcModulePath);
 
     isUwp = GetPrivateProfileIntW(L"UWP", L"UWPGame", -1, wcModulePath) != -1;
 
