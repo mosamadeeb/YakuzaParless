@@ -141,7 +141,7 @@ namespace Parless
                 path = translatePath(gameMap, path, splits);
             }
 
-            if (currentGame >= Game::Yakuza6 && currentGame < Game::YakuzaLikeADragon)
+            if (currentGame >= Game::Yakuza6 && currentGame < Game::LostJudgment)
             {
                 // Dragon Engine specific translation
                 path = translatePathDE(path, indexOfData, currentGame, currentLocale);
@@ -794,6 +794,7 @@ void OnInitializeHook()
                 break;
             }
             case Game::YakuzaLikeADragon:
+            case Game::Judgment:
             {
                 if (MH_Initialize() != MH_OK)
                 {
@@ -801,41 +802,7 @@ void OnInitializeHook()
                     return;
                 }
 
-                // Y7 needs hooks for two different functions
-
-                // File loading hook
-                if (isUwp)
-                {
-                    renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
-                }
-                else
-                {
-                    auto pat = pattern("48 89 54 24 10 4C 89 44 24 18 4C 89 4C 24 20 48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8");
-                    
-                    // Try the UWP pattern if the main pattern doesn't match
-                    if (pat.size() < 5)
-                    {
-                        renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
-                    }
-                    else
-                    {
-                        renameFilePathsFunc = pat.get(4).get<void>(32);
-                    }
-                }
-
-                ReadCall(renameFilePathsFunc, hookYLaDAddFileEntry);
-
-                if (MH_CreateHook(hookYLaDAddFileEntry, &YLaDAddFileEntry, reinterpret_cast<LPVOID*>(&orgYLaDAddFileEntry)) != MH_OK)
-                {
-                    cout << "Hook creation failed. Aborting.\n";
-                    return;
-                }
-
-                if (MH_EnableHook(hookYLaDAddFileEntry) != MH_OK)
-                {
-                    cout << "Hook could not be enabled. Aborting.\n";
-                    return;
-                }
+                // Y7/JE need hooks for two different functions
 
                 // Filepath hook
                 if (isUwp)
@@ -856,6 +823,50 @@ void OnInitializeHook()
                 }
 
                 if (MH_EnableHook(hookYLaDFilepath) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                [[fallthrough]];
+            }
+            case Game::LostJudgment:
+            {
+                if (MH_Initialize() != MH_OK)
+                {
+                    cout << "Minhook initialization failed. Aborting.\n";
+                    return;
+                }
+
+                // File loading hook
+                if (isUwp)
+                {
+                    renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                }
+                else
+                {
+                    auto pat = pattern("48 89 54 24 10 4C 89 44 24 18 4C 89 4C 24 20 48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8");
+
+                    // Try the UWP pattern if the main pattern doesn't match
+                    if (pat.size() < 5)
+                    {
+                        renameFilePathsFunc = get_pattern("48 83 EC 28 4C 8B C2 4C 8D 4C 24 40 BA 10 04 00 00 E8", 17);
+                    }
+                    else
+                    {
+                        renameFilePathsFunc = pat.get(4).get<void>(32);
+                    }
+                }
+
+                ReadCall(renameFilePathsFunc, hookYLaDAddFileEntry);
+
+                if (MH_CreateHook(hookYLaDAddFileEntry, &YLaDAddFileEntry, reinterpret_cast<LPVOID*>(&orgYLaDAddFileEntry)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hookYLaDAddFileEntry) != MH_OK)
                 {
                     cout << "Hook could not be enabled. Aborting.\n";
                     return;

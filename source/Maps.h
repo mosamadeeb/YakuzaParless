@@ -23,6 +23,8 @@ enum class Game
 	Yakuza6,
 	YakuzaKiwami2,
 	YakuzaLikeADragon,
+	Judgment,
+	LostJudgment,
 	VFeSports,
 };
 
@@ -37,6 +39,8 @@ Game getGame(string name)
 	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
 	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
 	if (name == "eve") return Game::VFeSports;
+	if (name == "Judgment") return Game::Judgment;
+	if (name == "LostJudgment") return Game::LostJudgment;
 
 	return Game::Unsupported;
 }
@@ -61,6 +65,10 @@ const char* getGameName(Game game)
 			return "Yakuza Kiwami 2";
 		case Game::YakuzaLikeADragon:
 			return "Yakuza: Like a Dragon";
+		case Game::Judgment:
+			return "Judgment";
+		case Game::LostJudgment:
+			return "Lost Judgment";
 		case Game::VFeSports:
 			return "Virtua Fighter eSports";
 		case Game::Unsupported:
@@ -237,6 +245,41 @@ stringmap getGameMap(Game game, Locale locale)
 				curLoc = string(locY7Vec[i]);
 				result["/db.yazawa/" + curLoc] = "/db.yazawa." + curLoc + "/" + curLoc;
 				result["/ui.yazawa/" + curLoc] = "/ui.yazawa." + curLoc + "/" + curLoc;
+			}
+
+			return result;
+		}
+		case Game::Judgment:
+		{
+			string curLoc;
+			vector<const char*> locJudgeVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_judge";
+
+			for (int i = 0; i < locJudgeVec.size(); i++)
+			{
+				curLoc = string(locJudgeVec[i]);
+				result["/db.judge/" + curLoc] = "/db.judge." + curLoc + "/" + curLoc;
+				result["/ui.judge/" + curLoc] = "/ui.judge." + curLoc + "/" + curLoc;
+			}
+
+			return result;
+		}
+		case Game::LostJudgment:
+		{
+			string curLoc;
+			vector<const char*> locJudgeVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_coyote";
+			result["/ui.coyote/texture"] = "/ui.coyote.common/texture";
+
+			for (int i = 0; i < locJudgeVec.size(); i++)
+			{
+				curLoc = string(locJudgeVec[i]);
+				result["/db.coyote/" + curLoc] = "/db.coyote." + curLoc;
+				result["/ui.coyote/" + curLoc] = "/ui.coyote." + curLoc;
 			}
 
 			return result;
