@@ -514,10 +514,6 @@ void OnInitializeHook()
         freopen_s(&fDummy, "CONOUT$", "w", stdout);
     }
 
-    cout << "YakuzaParless v" << VERSION << "\n\n";
-
-    Trampoline* trampoline = Trampoline::MakeTrampoline(GetModuleHandle(nullptr));
-
     // Get the name of the current game
     wchar_t exePath[MAX_PATH + 1];
     GetModuleFileNameW(NULL, exePath, MAX_PATH);
@@ -529,7 +525,16 @@ void OnInitializeHook()
     currentGameName = getGameName(currentGame);
     currentLocale = localeValue < 4 && localeValue >= 0 ? Locale(localeValue) : Locale::English;
 
+    cout << "YakuzaParless v" << VERSION << "\n\n";
     cout << "Detected game: " << currentGameName << (isUwp ? " UWP version" : "") << endl;
+
+    if (currentGame == Game::Unsupported)
+    {
+        cout << currentGameName << " is unsupported. Aborting." << endl;
+        return;
+    }
+
+    Trampoline* trampoline = Trampoline::MakeTrampoline(GetModuleHandle(nullptr));
 
     // Initialize the virtual->real map
     gameMap = getGameMap(currentGame, currentLocale);
@@ -537,9 +542,16 @@ void OnInitializeHook()
     // Rebuild the MLO file
     if (rebuildMLO)
     {
-        cout << "Rebuilding MLO... ";
-        RebuildMLO();
-        cout << "DONE!\n";
+        if (currentGame == Game::LostJudgment)
+        {
+            cout << "Not rebuilding MLO because it is unsupported by this game." << endl;
+        }
+        else
+        {
+            cout << "Rebuilding MLO... ";
+            RebuildMLO();
+            cout << "DONE!\n";
+        }
     }
 
     // Read MLO file
