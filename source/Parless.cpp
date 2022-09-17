@@ -42,6 +42,10 @@ namespace Parless
     t_orgYLaDFilepath orgYLaDFilepath = NULL;
     t_orgYLaDFilepath(*hookYLaDFilepath) = NULL;
 
+    typedef int (*t_orgLJAddFileEntry)(short* a1, int a2, char* a3, char** a4);
+    t_orgLJAddFileEntry orgLJAddFileEntry = NULL;
+    t_orgLJAddFileEntry(*hookLJAddFileEntry) = NULL;
+
     __int64 (*orgY3AdxEntry)(__int64 a1, __int64 a2, __int64 a3);
     __int64 (*orgY0CpkEntry)(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
     uint64_t(*orgY6SprintfAwb)(uint64_t param_1, uint64_t param_2, uint64_t param_3, uint64_t param_4);
@@ -332,6 +336,13 @@ namespace Parless
         char* result = orgYLaDAddFileEntry(a1, a2, a3, a4);
         RenameFilePaths(a1);
         return result;
+    }
+
+    int LJAddFileEntry(short* a1, int a2, char* a3, char** a4)
+    {
+        ((t_orgLJAddFileEntry)0x13FFF0FC1)(a1, a2, a3, a4);
+        RenameFilePaths((char*)a1);
+        return strlen((char*)a1);
     }
 
     void YLaDFilepath(char* a1, uint64_t a2, char* a3, uint64_t a4)
@@ -820,51 +831,13 @@ void OnInitializeHook()
             case Game::YakuzaLikeADragon:
             case Game::Judgment:
             {
-                if (!minhookInit && MH_Initialize() != MH_OK)
+                if (MH_Initialize() != MH_OK)
                 {
                     cout << "Minhook initialization failed. Aborting.\n";
                     return;
                 }
-
-                minhookInit = true;
 
                 // Y7/JE need hooks for two different functions
-
-                // Filepath hook
-                if (isUwp)
-                {
-                    renameFilePathsFunc = get_pattern("44 8D 4F 03 BA 10 04 00 00 4C 8D 84 24 50 06 00 00 48 8D 8C 24 60 0A 00 00 E8", 25);
-                }
-                else
-                {
-                    renameFilePathsFunc = get_pattern("44 8D 4D 03 4C 8D 84 24 40 02 00 00 BA 10 04 00 00 48 8D 8C 24 B0 0C 00 00 E8", 25);
-                }
-
-                ReadCall(renameFilePathsFunc, hookYLaDFilepath);
-
-                if (MH_CreateHook(hookYLaDFilepath, &YLaDFilepath, reinterpret_cast<LPVOID*>(&orgYLaDFilepath)) != MH_OK)
-                {
-                    cout << "Hook creation failed. Aborting.\n";
-                    return;
-                }
-
-                if (MH_EnableHook(hookYLaDFilepath) != MH_OK)
-                {
-                    cout << "Hook could not be enabled. Aborting.\n";
-                    return;
-                }
-
-                [[fallthrough]];
-            }
-            case Game::LostJudgment:
-            {
-                if (!minhookInit && MH_Initialize() != MH_OK)
-                {
-                    cout << "Minhook initialization failed. Aborting.\n";
-                    return;
-                }
-
-                minhookInit = true;
 
                 // File loading hook
                 if (isUwp)
@@ -899,6 +872,60 @@ void OnInitializeHook()
                     cout << "Hook could not be enabled. Aborting.\n";
                     return;
                 }
+
+                // Filepath hook
+                if (isUwp)
+                {
+                    renameFilePathsFunc = get_pattern("44 8D 4F 03 BA 10 04 00 00 4C 8D 84 24 50 06 00 00 48 8D 8C 24 60 0A 00 00 E8", 25);
+                }
+                else
+                {
+                    renameFilePathsFunc = get_pattern("44 8D 4D 03 4C 8D 84 24 40 02 00 00 BA 10 04 00 00 48 8D 8C 24 B0 0C 00 00 E8", 25);
+                }
+
+                ReadCall(renameFilePathsFunc, hookYLaDFilepath);
+
+                if (MH_CreateHook(hookYLaDFilepath, &YLaDFilepath, reinterpret_cast<LPVOID*>(&orgYLaDFilepath)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hookYLaDFilepath) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                cout << FILE_LOAD_MSG;
+                break;
+            }
+            case Game::LostJudgment:
+            {
+                if (MH_Initialize() != MH_OK)
+                {
+                    cout << "Minhook initialization failed. Aborting.\n";
+                    return;
+                }
+
+                // For some reason, the address we receive from this function is incorrect, so the function address is hardcoded instead
+                //ReadCall(pattern("48 8B D9 85 D2 74 ? FF CA E8").get(1).get<void>(9), hookLJAddFileEntry);
+                hookLJAddFileEntry = (t_orgLJAddFileEntry*)0x141808690;
+
+                if (MH_CreateHook(hookLJAddFileEntry, &LJAddFileEntry, reinterpret_cast<LPVOID*>(&orgLJAddFileEntry)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hookLJAddFileEntry) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                // Again, for some unknown reason, the pointer here is pointing to an interrupt (0xCC), and the actual trampoline space is right after that
+                orgLJAddFileEntry = (t_orgLJAddFileEntry)((char*)orgLJAddFileEntry + 1);
 
                 cout << FILE_LOAD_MSG;
                 break;
