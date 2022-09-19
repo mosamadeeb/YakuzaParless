@@ -354,7 +354,17 @@ namespace Parless
 
 void RebuildMLO()
 {
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    // Calling CoInitializeEx somehow breaks other games, but is needed for JE and LJ to prevent an error from showing up
+    switch (Parless::currentGame)
+    {
+        case Game::Judgment:
+        case Game::LostJudgment:
+            CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+            break;
+        default:
+            break;
+    }
+
     SHELLEXECUTEINFOA ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
