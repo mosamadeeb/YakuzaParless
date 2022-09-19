@@ -341,7 +341,7 @@ namespace Parless
 
     int LJAddFileEntry(short* a1, int a2, char* a3, char** a4)
     {
-        ((t_orgLJAddFileEntry)0x13FFF0FC1)(a1, a2, a3, a4);
+        orgLJAddFileEntry(a1, a2, a3, a4);
         RenameFilePaths((char*)a1);
         return strlen((char*)a1);
     }
@@ -947,9 +947,7 @@ void OnInitializeHook()
                     return;
                 }
 
-                // For some reason, the address we receive from this function is incorrect, so the function address is hardcoded instead
-                //ReadCall(pattern("48 8B D9 85 D2 74 ? FF CA E8").get(1).get<void>(9), hookLJAddFileEntry);
-                hookLJAddFileEntry = (t_orgLJAddFileEntry*)0x141808690;
+                hookLJAddFileEntry = (t_orgLJAddFileEntry*)pattern("41 57 48 8D A8 68 FE FF FF 48 81 EC 58 02 00 00 C5 F8 29 70 A8").get_first(-20);
 
                 if (MH_CreateHook(hookLJAddFileEntry, &LJAddFileEntry, reinterpret_cast<LPVOID*>(&orgLJAddFileEntry)) != MH_OK)
                 {
