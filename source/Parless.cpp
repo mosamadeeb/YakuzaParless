@@ -630,7 +630,7 @@ void OnInitializeHook()
 
     using namespace Parless;
 
-    const char* VERSION = "1.6.1";
+    const char* VERSION = "1.7";
 
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
