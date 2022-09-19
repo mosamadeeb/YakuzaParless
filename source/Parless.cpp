@@ -55,6 +55,7 @@ namespace Parless
 
     stringmap gameMap;
     stringmap fileModMap;
+    unordered_map<string, vector<string>> cpkModMap;
 
     unordered_map<string, int> parlessPathMap;
 
@@ -411,7 +412,7 @@ void ReadModLoadOrder()
     // Skip filesize
     mlo.seekg(4, SEEK_CUR);
 
-    if (version == 0x10002)
+    if (version == 0x20000)
     {
         uint32_t modNameStart;
         uint32_t modCount;
@@ -422,6 +423,9 @@ void ReadModLoadOrder()
         uint32_t parlessPathStart;
         uint32_t parlessPathCount;
 
+        uint32_t cpkFolderStart;
+        uint32_t cpkFolderCount;
+
         mlo.read((char*)&modNameStart, sizeof(modNameStart));
         mlo.read((char*)&modCount, sizeof(modCount));
 
@@ -431,8 +435,11 @@ void ReadModLoadOrder()
         mlo.read((char*)&parlessPathStart, sizeof(parlessPathStart));
         mlo.read((char*)&parlessPathCount, sizeof(parlessPathCount));
 
+        mlo.read((char*)&cpkFolderStart, sizeof(cpkFolderStart));
+        mlo.read((char*)&cpkFolderCount, sizeof(cpkFolderCount));
+
         // Skip padding
-        mlo.seekg(8, SEEK_CUR);
+        mlo.seekg(0x10, SEEK_CUR);
 
         uint16_t length;
         char* name;
@@ -477,6 +484,28 @@ void ReadModLoadOrder()
             mlo.read(name, length);
 
             parlessPathMap[string(name)] = index;
+            delete[] name;
+        }
+
+        mlo.seekg(cpkFolderStart);
+
+        uint16_t count;
+        for (int i = 0; i < fileCount; i++)
+        {
+            mlo.read((char*)&count, sizeof(count));
+            mlo.read((char*)&length, sizeof(length));
+
+            name = new char[length];
+            mlo.read(name, length);
+
+            vector<string> modIndices;
+            for (int j = 0; j < count; j++)
+            {
+                mlo.read((char*)&index, sizeof(index));
+                modIndices.push_back(mods[index]);
+            }
+
+            cpkModMap[string(name)] = modIndices;
             delete[] name;
         }
     }
