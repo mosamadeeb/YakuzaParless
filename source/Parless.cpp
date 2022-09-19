@@ -781,7 +781,11 @@ void OnInitializeHook()
 
         void* renameFilePathsFunc;
 
-        bool minhookInit = false;
+        if (MH_Initialize() != MH_OK)
+        {
+            cout << "Minhook initialization failed. Aborting.\n";
+            return;
+        }
 
         switch (currentGame)
         {
@@ -836,6 +840,25 @@ void OnInitializeHook()
 
                 InjectHook(renameFilePathsFunc, trampoline->Jump(Y5AddFileEntry));
                 cout << FILE_LOAD_MSG;
+
+                hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58 33 DB", -26);
+                org_BindDir = (t_CriBind)get_pattern("41 57 48 83 EC 30 48 8B 74 24 78 33 ED", -23);
+
+                if (MH_CreateHook(hook_BindCpk, &BindCpk, reinterpret_cast<LPVOID*>(&org_BindCpk)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hook_BindCpk) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                org_BindCpk = (t_CriBind)((char*)org_BindCpk + 1);
+
+                cout << CPK_BIND_MSG;
                 break;
             case Game::Yakuza6:
             {
@@ -981,12 +1004,6 @@ void OnInitializeHook()
             case Game::YakuzaLikeADragon:
             case Game::Judgment:
             {
-                if (MH_Initialize() != MH_OK)
-                {
-                    cout << "Minhook initialization failed. Aborting.\n";
-                    return;
-                }
-
                 // Y7/JE need hooks for two different functions
 
                 // File loading hook
@@ -1073,12 +1090,6 @@ void OnInitializeHook()
             }
             case Game::LostJudgment:
             {
-                if (MH_Initialize() != MH_OK)
-                {
-                    cout << "Minhook initialization failed. Aborting.\n";
-                    return;
-                }
-
                 hookLJAddFileEntry = (t_orgLJAddFileEntry*)pattern("41 57 48 8D A8 68 FE FF FF 48 81 EC 58 02 00 00 C5 F8 29 70 A8").get_first(-20);
 
                 if (MH_CreateHook(hookLJAddFileEntry, &LJAddFileEntry, reinterpret_cast<LPVOID*>(&orgLJAddFileEntry)) != MH_OK)
