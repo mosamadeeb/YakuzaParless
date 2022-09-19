@@ -28,6 +28,11 @@ using namespace std;
 
 namespace Parless
 {
+    typedef int (*t_CriBind)(void* param_1, void* param_2, const char* path, void* param_4, int param_5, void* bindId, int param_7);
+    t_CriBind(*hook_BindCpk);
+    t_CriBind org_BindCpk = NULL;
+    t_CriBind org_BindDir = NULL;
+
     __int64 (*orgY3AddFileEntry)(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12);
     __int64 (*orgY5AddFileEntry)(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12, int a13, char a14);
     __int64 (*orgY0AddFileEntry)(__int64 a1, char* filepath, __int64 a3, int a4, __int64 a5, __int64 a6, char a7, __int64 a8, char a9, char a10, char a11, char a12, char a13);
@@ -41,6 +46,9 @@ namespace Parless
     typedef void (*t_orgYLaDFilepath)(char* a1, uint64_t a2, char* a3, uint64_t a4);
     t_orgYLaDFilepath orgYLaDFilepath = NULL;
     t_orgYLaDFilepath(*hookYLaDFilepath) = NULL;
+
+    //t_CriBind(*hookJE_BindCpk) = (t_Bind*)0x141855794;
+    //t_CriBind orgJE_BindDir = (t_Bind)0x141852f3c;
 
     typedef int (*t_orgLJAddFileEntry)(short* a1, int a2, char* a3, char** a4);
     t_orgLJAddFileEntry orgLJAddFileEntry = NULL;
@@ -56,6 +64,9 @@ namespace Parless
     stringmap gameMap;
     stringmap fileModMap;
     unordered_map<string, vector<string>> cpkModMap;
+
+    const int DIR_WORKSIZE = 0x58;
+    unordered_map<string, int> cpkBindIdMap;
 
     unordered_map<string, int> parlessPathMap;
 
@@ -147,7 +158,7 @@ namespace Parless
                 path = translatePath(gameMap, path, splits);
             }
 
-            if (currentGame >= Game::Yakuza6 && currentGame < Game::LostJudgment)
+            if (currentGame >= Game::Yakuza6 && currentGame < Game::YakuzaLikeADragon)
             {
                 // Dragon Engine specific translation
                 path = translatePathDE(path, indexOfData, currentGame, currentLocale);
@@ -281,6 +292,97 @@ namespace Parless
         return overridden;
     }
 
+    void BindCpkPaths(void* param_1, void* param_2, const char* filepath, int param_7)
+    {
+        string path(filepath);
+
+        size_t indexOfData = firstIndexOf(path, "data/");
+
+        if (indexOfData == -1 && loadMods)
+        {
+            // File might be in mods instead, which means we're receiving it modified
+            indexOfData = firstIndexOf(path, "mods/");
+
+            if (indexOfData != -1)
+            {
+                // Replace the mod path with data
+                path = removeModPath(path, indexOfData);
+            }
+        }
+
+        if (indexOfData != -1)
+        {
+            vector<int> splits;
+
+            if (loadParless)
+            {
+                // Remove parless if it's there
+                path = removeParlessPath(path, indexOfData);
+            }
+
+            if (!gameMap.empty())
+            {
+                splits = splitPath(path, indexOfData, gameMapMaxSplits);
+                path = translatePath(gameMap, path, splits);
+            }
+
+            if (loadMods)
+            {
+                // Get the path starting from data/
+                string dataPath = path.substr(indexOfData + 4);
+                string dataPath_lowercase = dataPath;
+                std::for_each(dataPath_lowercase.begin(), dataPath_lowercase.end(), [](char& w) { w = std::tolower(w); });
+
+                auto match = cpkModMap.find(dataPath_lowercase);
+                if (match != cpkModMap.end())
+                {
+                    vector<string> modVec = match->second;
+                    for (int i = 0; i < modVec.size(); i++)
+                    {
+                        string override = path;
+
+                        // Redirect the path from data/ to mods/<ModName>/
+                        override.erase(indexOfData, 4);
+                        override.insert(indexOfData, "mods/" + modVec[i]);
+
+                        override.erase(override.size() - 4);
+
+                        auto idMatch = cpkBindIdMap.find(override);
+                        if (idMatch != cpkBindIdMap.end())
+                        {
+                            cout << "Mod CPK directory already bound with ID " << idMatch->second << ": " << override << std::endl;
+                            continue;
+                        }
+
+                        if (filesystem::exists(override))
+                        {
+                            cpkBindIdMap[override] = 0;
+
+                            int result = org_BindDir(param_1, param_2, override.c_str(), malloc(DIR_WORKSIZE), DIR_WORKSIZE, &cpkBindIdMap[override], param_7);
+
+                            if (result != 0)
+                            {
+                                cout << "CRI ERROR: " << result << endl;
+                            }
+
+                            printf_s("Bound directory \"%s\" with ID %d\n", override.c_str() + indexOfData, cpkBindIdMap[override]);
+
+                            if (logMods)
+                            {
+                                std::lock_guard<loggingStream> g_(modOverrides);
+                                (*modOverrides) << override.c_str() + indexOfData << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            cout << "Mod CPK directory not found: " << override << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     __int64 Y3AddFileEntry(__int64 a1, __int64 filepath, __int64 a3, int a4, __int64 a5, __int64 a6, int a7, __int64 a8, int a9, char a10, int a11, char a12)
     {
         RenameFilePaths((char*)filepath);
@@ -337,6 +439,14 @@ namespace Parless
         char* result = orgYLaDAddFileEntry(a1, a2, a3, a4);
         RenameFilePaths(a1);
         return result;
+    }
+
+    int BindCpk(void* param_1, void* param_2, const char* path, void* param_4, int param_5, void* bindId, int param_7)
+    {
+        cout << endl;
+        cout << "Binding CPK: " << path << endl;
+        BindCpkPaths(param_1, param_2, path, param_7);
+        return org_BindCpk(param_1, param_2, path, param_4, param_5, bindId, param_7);
     }
 
     int LJAddFileEntry(short* a1, int a2, char* a3, char** a4)
@@ -524,6 +634,7 @@ void OnInitializeHook()
 
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
+    const char* CPK_BIND_MSG = "Applied CPK directory bind hook.\n";
     const char* ADX_LOAD_MSG = "Applied ADX loading hook.\n";
     const char* AWB_LOAD_MSG = "Applied AWB loading hook.\n";
     const char* PATH_EXT_MSG = "Applied file path extension hook.\n";
@@ -937,6 +1048,27 @@ void OnInitializeHook()
                 }
 
                 cout << FILE_LOAD_MSG;
+
+                if (currentGame == Game::Judgment)
+                {
+                    hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58 33 DB", -26);
+                    org_BindDir = (t_CriBind)get_pattern("41 57 48 83 EC 30 48 8B 74 24 78 33 ED", -23);
+
+                    if (MH_CreateHook(hook_BindCpk, &BindCpk, reinterpret_cast<LPVOID*>(&org_BindCpk)) != MH_OK)
+                    {
+                        cout << "Hook creation failed. Aborting.\n";
+                        return;
+                    }
+
+                    if (MH_EnableHook(hook_BindCpk) != MH_OK)
+                    {
+                        cout << "Hook could not be enabled. Aborting.\n";
+                        return;
+                    }
+
+                    cout << CPK_BIND_MSG;
+                }
+
                 break;
             }
             case Game::LostJudgment:
@@ -965,6 +1097,27 @@ void OnInitializeHook()
                 orgLJAddFileEntry = (t_orgLJAddFileEntry)((char*)orgLJAddFileEntry + 1);
 
                 cout << FILE_LOAD_MSG;
+
+                hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58 45 33 E4", -26);
+                org_BindDir = (t_CriBind)get_pattern("41 57 48 83 EC 30 48 8B 74 24 78 33 ED", -23);
+
+                if (MH_CreateHook(hook_BindCpk, &BindCpk, reinterpret_cast<LPVOID*>(&org_BindCpk)) != MH_OK)
+                {
+                    cout << "Hook creation failed. Aborting.\n";
+                    return;
+                }
+
+                if (MH_EnableHook(hook_BindCpk) != MH_OK)
+                {
+                    cout << "Hook could not be enabled. Aborting.\n";
+                    return;
+                }
+
+                // Same issue as above
+                org_BindCpk = (t_CriBind)((char*)org_BindCpk + 1);
+
+                cout << CPK_BIND_MSG;
+
                 break;
             }
             case Game::Unsupported:
