@@ -630,7 +630,7 @@ void OnInitializeHook()
 
     using namespace Parless;
 
-    const char* VERSION = "1.7";
+    const char* VERSION = "1.7.1";
 
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
@@ -1104,8 +1104,8 @@ void OnInitializeHook()
                     return;
                 }
 
-                // Again, for some unknown reason, the pointer here is pointing to an interrupt (0xCC), and the actual trampoline space is right after that
-                orgLJAddFileEntry = (t_orgLJAddFileEntry)((char*)orgLJAddFileEntry + 1);
+                // For some unknown reason, the pointer here is pointing to an interrupt (0xCC) that replaced the first byte of the trampoline space
+                *((char*)orgLJAddFileEntry) = 0x48;
 
                 cout << FILE_LOAD_MSG;
 
@@ -1125,7 +1125,7 @@ void OnInitializeHook()
                 }
 
                 // Same issue as above
-                org_BindCpk = (t_CriBind)((char*)org_BindCpk + 1);
+                *((char*)org_BindCpk) = 0x48;
 
                 cout << CPK_BIND_MSG;
 
