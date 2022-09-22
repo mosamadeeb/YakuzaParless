@@ -1002,9 +1002,8 @@ void OnInitializeHook()
                 break;
             }
             case Game::YakuzaLikeADragon:
-            case Game::Judgment:
             {
-                // Y7/JE need hooks for two different functions
+                // Y7 need hooks for two different functions
 
                 // File loading hook
                 if (isUwp)
@@ -1065,29 +1064,9 @@ void OnInitializeHook()
                 }
 
                 cout << FILE_LOAD_MSG;
-
-                if (currentGame == Game::Judgment)
-                {
-                    hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58 33 DB", -26);
-                    org_BindDir = (t_CriBind)get_pattern("41 57 48 83 EC 30 48 8B 74 24 78 33 ED", -23);
-
-                    if (MH_CreateHook(hook_BindCpk, &BindCpk, reinterpret_cast<LPVOID*>(&org_BindCpk)) != MH_OK)
-                    {
-                        cout << "Hook creation failed. Aborting.\n";
-                        return;
-                    }
-
-                    if (MH_EnableHook(hook_BindCpk) != MH_OK)
-                    {
-                        cout << "Hook could not be enabled. Aborting.\n";
-                        return;
-                    }
-
-                    cout << CPK_BIND_MSG;
-                }
-
                 break;
             }
+            case Game::Judgment:
             case Game::LostJudgment:
             {
                 hookLJAddFileEntry = (t_orgLJAddFileEntry*)pattern("41 57 48 8D A8 68 FE FF FF 48 81 EC 58 02 00 00 C5 F8 29 70 A8").get_first(-20);
@@ -1109,7 +1088,7 @@ void OnInitializeHook()
 
                 cout << FILE_LOAD_MSG;
 
-                hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58 45 33 E4", -26);
+                hook_BindCpk = (t_CriBind*)get_pattern("41 57 48 8B EC 48 83 EC 70 4C 8B 6D 58", -26);
                 org_BindDir = (t_CriBind)get_pattern("41 57 48 83 EC 30 48 8B 74 24 78 33 ED", -23);
 
                 if (MH_CreateHook(hook_BindCpk, &BindCpk, reinterpret_cast<LPVOID*>(&org_BindCpk)) != MH_OK)
