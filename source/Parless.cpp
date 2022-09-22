@@ -465,17 +465,6 @@ namespace Parless
 
 void RebuildMLO()
 {
-    // Calling CoInitializeEx somehow breaks other games, but is needed for JE and LJ to prevent an error from showing up
-    switch (Parless::currentGame)
-    {
-        case Game::Judgment:
-        case Game::LostJudgment:
-            CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-            break;
-        default:
-            break;
-    }
-
     SHELLEXECUTEINFOA ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -713,7 +702,7 @@ void OnInitializeHook()
     // Rebuild the MLO file
     if (rebuildMLO)
     {
-        if (currentGame == Game::LostJudgment)
+        if (currentGame == Game::Judgment || currentGame == Game::LostJudgment)
         {
             cout << "Not rebuilding MLO because it is unsupported by this game." << endl;
         }
