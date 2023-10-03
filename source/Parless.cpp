@@ -28,6 +28,8 @@ using namespace std;
 
 namespace Parless
 {
+    const char* VERSION = "1.7.5";
+
     typedef int (*t_CriBind)(void* param_1, void* param_2, const char* path, void* param_4, int param_5, void* bindId, int param_7);
     t_CriBind(*hook_BindCpk);
     t_CriBind org_BindCpk = NULL;
@@ -60,6 +62,8 @@ namespace Parless
 
     Game currentGame;
     Locale currentLocale;
+
+    bool modsLoaded;
 
     stringmap gameMap;
     stringmap fileModMap;
@@ -607,6 +611,34 @@ void ReadModLoadOrder()
             cpkModMap[string(name)] = modIndices;
             delete[] name;
         }
+        
+    }
+}
+
+void InitializeScripts()
+{
+    typedef int(__stdcall* asi_init)();
+
+    //Iterate the filemap for any ASI scripts. Then load them
+    for (auto it = Parless::fileModMap.begin(); it != Parless::fileModMap.end(); it++) {
+
+        if (endsWith(it->first, ".asi"))
+        {
+            string path;
+            path += string("mods/") + string(it->second) + string(it->first);
+
+            HINSTANCE asiScript = LoadLibraryA(path.c_str());
+
+            if (asiScript)
+            {
+                asi_init asiInitFunc = (asi_init)GetProcAddress(asiScript, "InitializeASI");
+
+                if (asiInitFunc)
+                    asiInitFunc();
+            }
+            else
+                cout << "Script LoadLibrary fail: " << path.c_str() << " Error Code: " << GetLastError() << endl;
+        }
     }
 }
 
@@ -618,8 +650,6 @@ void OnInitializeHook()
     using namespace hook;
 
     using namespace Parless;
-
-    const char* VERSION = "1.7.2";
 
     const char* FILE_LOAD_MSG = "Applied file loading hook.\n";
     const char* CPK_LOAD_MSG = "Applied CPK loading hook.\n";
@@ -717,6 +747,11 @@ void OnInitializeHook()
     // Read MLO file
     cout << "Reading MLO... ";
     ReadModLoadOrder();
+    cout << "DONE!\n";
+    
+    //Initialize Extensions/Script Mods
+    cout << "Initializing mod scripts... ";
+    InitializeScripts();
     cout << "DONE!\n";
 
     // These maps are filled after reading the MLO
@@ -1106,6 +1141,8 @@ void OnInitializeHook()
         }
     }
 
+    modsLoaded = true;
+
     cout << "Hook function finished.\n";
 }
 
@@ -1118,4 +1155,19 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
         hDLLModule = hinstDLL;
     }
     return TRUE;
+}
+
+
+//Exports
+extern "C"
+{
+    __declspec(dllexport) const char* YP_GET_VERSION()
+    {
+        return Parless::VERSION;
+    }
+
+    __declspec(dllexport) bool YP_ARE_MODS_LOADED()
+    {
+        return Parless::modsLoaded;
+    }
 }
