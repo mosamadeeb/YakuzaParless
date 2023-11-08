@@ -773,7 +773,7 @@ void OnInitializeHook()
 	// Rebuild the MLO file
 	if (rebuildMLO)
 	{
-		if (currentGame == Game::Judgment || currentGame == Game::LostJudgment)
+		if (currentGame >= Game::Judgment)
 		{
 			cout << "Not rebuilding MLO because it is unsupported by this game." << endl;
 		}
@@ -1182,7 +1182,8 @@ void OnInitializeHook()
 
 		case Game::LikeADragonGaidenTheManWhoErasedHisName:
 		{
-			hookGaidenAddFileEntry = (t_orgGaidenAddFileEntry*)pattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 38 FE FF FF").get_first(0);
+
+			hookGaidenAddFileEntry = (t_orgGaidenAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
 
 			if (MH_CreateHook(hookGaidenAddFileEntry, &GaidenAddFileEntry, reinterpret_cast<LPVOID*>(&orgGaidenAddFileEntry)) != MH_OK)
 			{
@@ -1204,7 +1205,7 @@ void OnInitializeHook()
 		}
 		case Game::LikeADragonInfiniteWealth:
 		{
-			hookIWAddFileEntry = (t_orgIWAddFileEntry*)pattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 38 FE FF FF").get_first(0);
+			hookIWAddFileEntry = (t_orgIWAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
 
 			if (MH_CreateHook(hookIWAddFileEntry, &IWAddFileEntry, reinterpret_cast<LPVOID*>(&orgIWAddFileEntry)) != MH_OK)
 			{

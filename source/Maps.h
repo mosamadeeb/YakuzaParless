@@ -45,6 +45,7 @@ Game getGame(string name)
 	if (name == "Judgment") return Game::Judgment;
 	if (name == "LostJudgment") return Game::LostJudgment;
 	if (name == "LikeaDragonGaiden") return Game::LikeADragonGaidenTheManWhoErasedHisName;
+	if (name == "LikeADragonGaiden") return Game::LikeADragonGaidenTheManWhoErasedHisName;
 	if (name == "LikeADragon8") return Game::LikeADragonInfiniteWealth;
 
 	return Game::Unsupported;
