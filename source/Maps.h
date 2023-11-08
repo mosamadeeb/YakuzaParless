@@ -26,6 +26,9 @@ enum class Game
 	Judgment,
 	LostJudgment,
 	VFeSports,
+	LikeADragonGaidenTheManWhoErasedHisName,
+	LikeADragonInfiniteWealthDemo,
+	LikeADragonInfiniteWealth
 };
 
 Game getGame(string name)
@@ -41,6 +44,8 @@ Game getGame(string name)
 	if (name == "eve") return Game::VFeSports;
 	if (name == "Judgment") return Game::Judgment;
 	if (name == "LostJudgment") return Game::LostJudgment;
+	if (name == "LikeaDragonGaiden") return Game::LikeADragonGaidenTheManWhoErasedHisName;
+	if (name == "LikeADragon8") return Game::LikeADragonInfiniteWealth;
 
 	return Game::Unsupported;
 }
@@ -71,6 +76,12 @@ const char* getGameName(Game game)
 			return "Lost Judgment";
 		case Game::VFeSports:
 			return "Virtua Fighter eSports";
+		case Game::LikeADragonGaidenTheManWhoErasedHisName:
+			return "Like a Dragon Gaiden: The Man Who Erased His Name";
+		case Game::LikeADragonInfiniteWealthDemo:
+			return "Like a Dragon: Infinite Wealth";
+		case Game::LikeADragonInfiniteWealth:
+			return "Like a Dragon: Infinite Wealth";
 		case Game::Unsupported:
 		default:
 			return "Unsupported";
@@ -280,6 +291,62 @@ stringmap getGameMap(Game game, Locale locale)
 				curLoc = string(locJudgeVec[i]);
 				result["/db.coyote/" + curLoc] = "/db.coyote." + curLoc;
 				result["/ui.coyote/" + curLoc] = "/ui.coyote." + curLoc;
+			}
+
+			return result;
+		}
+		case Game::LikeADragonGaidenTheManWhoErasedHisName:
+		{
+			string curLoc;
+			vector<const char*> locGaidenVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru"};
+
+			result = stringmap();
+			result["/entity"] = "/entity_aston";
+			result["/ui.aston/texture"] = "/ui.aston.common/texture";
+
+			for (int i = 0; i < locGaidenVec.size(); i++)
+			{
+				curLoc = string(locGaidenVec[i]);
+				result["/db.aston/" + curLoc] = "/db.aston." + curLoc;
+				result["/ui.aston/" + curLoc] = "/ui.aston." + curLoc;
+			}
+
+			return result;
+		}
+
+		case Game::LikeADragonInfiniteWealthDemo:
+		{
+			string curLoc;
+			vector<const char*> locInfWealthVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_elvis";
+			result["/ui.elvis/texture"] = "/ui.elvis.common/texture";
+
+			for (int i = 0; i < locInfWealthVec.size(); i++)
+			{
+				curLoc = string(locInfWealthVec[i]);
+				result["/db.elvis.trial/" + curLoc] = "/db.elvis.trial" + curLoc;
+				result["/ui.elvis/" + curLoc] = "/ui.elvis." + curLoc;
+			}
+
+			return result;
+		}
+
+		case Game::LikeADragonInfiniteWealth:
+		{
+			string curLoc;
+			vector<const char*> locInfWealthVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_elvis";
+			result["/ui.elvis/texture"] = "/ui.elvis.common/texture";
+
+			for (int i = 0; i < locInfWealthVec.size(); i++)
+			{
+				curLoc = string(locInfWealthVec[i]);
+				result["/db.elvis/" + curLoc] = "/db.elvis." + curLoc;
+				result["/ui.elvis/" + curLoc] = "/ui.elvis." + curLoc;
 			}
 
 			return result;
