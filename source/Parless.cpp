@@ -28,7 +28,7 @@ using namespace std;
 
 namespace Parless
 {
-	const char* VERSION = "1.8.0";
+	const char* VERSION = "1.8.1";
 
 	typedef int (*t_CriBind)(void* param_1, void* param_2, const char* path, void* param_4, int param_5, void* bindId, int param_7);
 	t_CriBind(*hook_BindCpk);
@@ -99,6 +99,7 @@ namespace Parless
 
 	// Mod paths will be relative to the ASI's directory instead of the game's directory (to support undumped UWP games)
 	bool isUwp;
+	bool isXbox;
 
 	bool hasRepackedPars;
 
@@ -746,6 +747,12 @@ void OnInitializeHook()
 	wstring wstr(exePath);
 	string currentGameName = basenameBackslashNoExt(string(wstr.begin(), wstr.end()));
 
+	if (wstr.find(L"WindowsApps") != std::wstring::npos)
+	{
+		Parless::isXbox = true;
+		std::cout << "Game is GamePass/MS Store version" << std::endl;
+	}
+
 	cout << "Game Name: " << currentGameName << endl;
 
 	currentGame = getGame(currentGameName);
@@ -1183,7 +1190,10 @@ void OnInitializeHook()
 		case Game::LikeADragonGaidenTheManWhoErasedHisName:
 		{
 
-			hookGaidenAddFileEntry = (t_orgGaidenAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
+			if(!Parless::isXbox)
+				hookGaidenAddFileEntry = (t_orgGaidenAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
+			else
+				hookGaidenAddFileEntry = (t_orgGaidenAddFileEntry*)pattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 38 FE FF FF").get_first(0);
 
 			if (MH_CreateHook(hookGaidenAddFileEntry, &GaidenAddFileEntry, reinterpret_cast<LPVOID*>(&orgGaidenAddFileEntry)) != MH_OK)
 			{
@@ -1205,7 +1215,10 @@ void OnInitializeHook()
 		}
 		case Game::LikeADragonInfiniteWealth:
 		{
-			hookIWAddFileEntry = (t_orgIWAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
+			if(!Parless::isXbox)
+				hookIWAddFileEntry = (t_orgIWAddFileEntry*)pattern("48 8B C4 4C 89 48 20 89 50 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 68 FE FF FF").get_first(0);
+			else
+				hookIWAddFileEntry = (t_orgIWAddFileEntry*)pattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D A8 38 FE FF FF").get_first(0);
 
 			if (MH_CreateHook(hookIWAddFileEntry, &IWAddFileEntry, reinterpret_cast<LPVOID*>(&orgIWAddFileEntry)) != MH_OK)
 			{
