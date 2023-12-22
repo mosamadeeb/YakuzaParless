@@ -26,21 +26,28 @@ enum class Game
 	Judgment,
 	LostJudgment,
 	VFeSports,
+	LikeADragonGaidenTheManWhoErasedHisName,
+	LikeADragonInfiniteWealthDemo,
+	LikeADragonInfiniteWealth
 };
 
 Game getGame(string name)
 {
-	if (name == "Yakuza3") return Game::Yakuza3;
-	if (name == "Yakuza4") return Game::Yakuza4;
-	if (name == "Yakuza5") return Game::Yakuza5;
-	if (name == "Yakuza0") return Game::Yakuza0;
-	if (name == "YakuzaKiwami") return Game::YakuzaKiwami;
-	if (name == "Yakuza6") return Game::Yakuza6;
-	if (name == "YakuzaKiwami2") return Game::YakuzaKiwami2;
+
+	if (startsWith(name, "Yakuza3")) return Game::Yakuza3;
+	if (startsWith(name, "Yakuza4")) return Game::Yakuza4;
+	if (startsWith(name, "Yakuza5")) return Game::Yakuza5;
+	if (startsWith(name, "Yakuza0")) return Game::Yakuza0;
+	if (startsWith(name, "YakuzaKiwami")) return Game::YakuzaKiwami;
+	if (startsWith(name, "Yakuza6")) return Game::Yakuza6;
+	if (startsWith(name, "YakuzaKiwami2")) return Game::YakuzaKiwami2;
 	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
 	if (name == "eve") return Game::VFeSports;
 	if (name == "Judgment") return Game::Judgment;
 	if (name == "LostJudgment") return Game::LostJudgment;
+	if (name == "LikeaDragonGaiden") return Game::LikeADragonGaidenTheManWhoErasedHisName;
+	if (name == "LikeADragonGaiden") return Game::LikeADragonGaidenTheManWhoErasedHisName;
+	if (name == "LikeADragon8") return Game::LikeADragonInfiniteWealth;
 
 	return Game::Unsupported;
 }
@@ -71,66 +78,16 @@ const char* getGameName(Game game)
 			return "Lost Judgment";
 		case Game::VFeSports:
 			return "Virtua Fighter eSports";
+		case Game::LikeADragonGaidenTheManWhoErasedHisName:
+			return "Like a Dragon Gaiden: The Man Who Erased His Name";
+		case Game::LikeADragonInfiniteWealthDemo:
+			return "Like a Dragon: Infinite Wealth";
+		case Game::LikeADragonInfiniteWealth:
+			return "Like a Dragon: Infinite Wealth";
 		case Game::Unsupported:
 		default:
 			return "Unsupported";
 	}
-}
-
-enum class Locale
-{
-	English,
-	Japanese,
-	Chinese,
-	Korean
-};
-
-/// <summary>
-/// Translates a path using a map
-/// </summary>
-/// <param name="pathMap"></param>
-/// <param name="path"></param>
-/// <param name="parts"></param>
-/// <returns></returns>
-string translatePath(stringmap pathMap, string path, vector<int> parts)
-{
-	string sub;
-	stringmap::const_iterator match;
-
-	const int START = 1; // Start index for checking paths
-	const int MAX_SPLITS = (START + 1) + 2; // Max splits is 2
-
-	// Look for matches in the map
-	for (int i = START + 1; i < MAX_SPLITS && i < parts.size(); i++)
-	{
-		sub = path.substr(parts[START], parts[i] - parts[START]);
-		match = pathMap.find(sub);
-
-		if (match != pathMap.end())
-		{
-			// translate path
-			return path.replace(parts[START], parts[i] - parts[START], match->second);
-		}
-	}
-
-	return path;
-}
-
-string translatePathDE(string path, int indexOfData, Game game, Locale locale)
-{
-	if (firstIndexOf(path, "data/entity", indexOfData) != -1 && endsWith(path, ".txt"))
-	{
-		string loc = "/ja/";
-		if (locale == Locale::English)
-		{
-			if (game == Game::YakuzaKiwami2) loc = "/en/";
-			else if (game == Game::Yakuza6) loc = "/e/";
-		}
-
-		path = rReplace(path, loc, "/");
-	}
-
-	return path;
 }
 
 string removeParlessPath(string path, int indexOfData)
@@ -156,7 +113,7 @@ string removeModPath(string path, int indexOfData)
 
 	return path;
 }
-
+/*
 stringmap getGameMap(Game game, Locale locale)
 {
 	vector<const char*> loc1Vec{ "e", "j", "z", "k" };
@@ -284,6 +241,62 @@ stringmap getGameMap(Game game, Locale locale)
 
 			return result;
 		}
+		case Game::LikeADragonGaidenTheManWhoErasedHisName:
+		{
+			string curLoc;
+			vector<const char*> locGaidenVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru"};
+
+			result = stringmap();
+			result["/entity"] = "/entity_aston";
+			result["/ui.aston/texture"] = "/ui.aston.common/texture";
+
+			for (int i = 0; i < locGaidenVec.size(); i++)
+			{
+				curLoc = string(locGaidenVec[i]);
+				result["/db.aston/" + curLoc] = "/db.aston." + curLoc;
+				result["/ui.aston/" + curLoc] = "/ui.aston." + curLoc;
+			}
+
+			return result;
+		}
+
+		case Game::LikeADragonInfiniteWealthDemo:
+		{
+			string curLoc;
+			vector<const char*> locInfWealthVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_elvis";
+			result["/ui.elvis/texture"] = "/ui.elvis.common/texture";
+
+			for (int i = 0; i < locInfWealthVec.size(); i++)
+			{
+				curLoc = string(locInfWealthVec[i]);
+				result["/db.elvis.trial/" + curLoc] = "/db.elvis.trial" + curLoc;
+				result["/ui.elvis/" + curLoc] = "/ui.elvis." + curLoc;
+			}
+
+			return result;
+		}
+
+		case Game::LikeADragonInfiniteWealth:
+		{
+			string curLoc;
+			vector<const char*> locInfWealthVec{ "de", "en", "es", "fr", "it", "ja", "ko", "zh", "zhs", "ru" };
+
+			result = stringmap();
+			result["/entity"] = "/entity_elvis";
+			result["/ui.elvis/texture"] = "/ui.elvis.common/texture";
+
+			for (int i = 0; i < locInfWealthVec.size(); i++)
+			{
+				curLoc = string(locInfWealthVec[i]);
+				result["/db.elvis/" + curLoc] = "/db.elvis." + curLoc;
+				result["/ui.elvis/" + curLoc] = "/ui.elvis." + curLoc;
+			}
+
+			return result;
+		}
 		case Game::VFeSports:
 			return stringmap({
 				{"/entity", "/entity_adam"},
@@ -295,3 +308,4 @@ stringmap getGameMap(Game game, Locale locale)
 			return stringmap();
 	}
 }
+*/
