@@ -30,7 +30,7 @@ using namespace std;
 
 namespace Parless
 {
-	const char* VERSION = "2.0.0";
+	const char* VERSION = "2.0.1";
 	
 	t_CriBind(*hook_BindCpk);
 	t_CriBind org_BindCpk = NULL;
@@ -144,36 +144,39 @@ namespace Parless
 
 			path = currentParlessGame->translate_path(path, indexOfData);
 
-			if (hasRepackedPars && endsWith(path, ".par"))
+			if (hasRepackedPars)
 			{
-				override = path;
-
-				// Redirect the path from data/ to mods/Parless/
-				override.erase(indexOfData, 4);
-				override.insert(indexOfData, "mods/Parless");
-
-				if (isUwp)
+				if (endsWith(path, ".par") || endsWith(path, ".cpk"))
 				{
-					override = asiPath + override.substr(indexOfData);
-					indexOfData = asiPath.length();
-				}
+					override = path;
 
-				if (filesystem::exists(override))
-				{
-					overridden = true;
+					// Redirect the path from data/ to mods/Parless/
+					override.erase(indexOfData, 4);
+					override.insert(indexOfData, "mods/Parless");
 
-					override.copy(filepath, override.length());
-					filepath[override.length()] = '\0';
-
-					if (logMods)
+					if (isUwp)
 					{
-						std::lock_guard<loggingStream> g_(modOverrides);
-						(*modOverrides) << filepath + indexOfData << std::endl;
+						override = asiPath + override.substr(indexOfData);
+						indexOfData = asiPath.length();
 					}
-				}
-				else
-				{
-					cout << "Par not found: " << override << std::endl;
+
+					if (filesystem::exists(override))
+					{
+						overridden = true;
+
+						override.copy(filepath, override.length());
+						filepath[override.length()] = '\0';
+
+						if (logMods)
+						{
+							std::lock_guard<loggingStream> g_(modOverrides);
+							(*modOverrides) << filepath + indexOfData << std::endl;
+						}
+					}
+					else
+					{
+						cout << "Par not found: " << override << std::endl;
+					}
 				}
 			}
 
