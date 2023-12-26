@@ -38,7 +38,7 @@ Game getGame(string name)
 	if (startsWith(name, "Yakuza4")) return Game::Yakuza4;
 	if (startsWith(name, "Yakuza5")) return Game::Yakuza5;
 	if (startsWith(name, "Yakuza0")) return Game::Yakuza0;
-	if (startsWith(name, "YakuzaKiwami")) return Game::YakuzaKiwami;
+	if (name == "YakuzaKiwami") return Game::YakuzaKiwami;
 	if (startsWith(name, "Yakuza6")) return Game::Yakuza6;
 	if (startsWith(name, "YakuzaKiwami2")) return Game::YakuzaKiwami2;
 	if (name == "YakuzaLikeADragon") return Game::YakuzaLikeADragon;
